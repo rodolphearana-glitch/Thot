@@ -64,12 +64,19 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
             "config": str(c.source.name) if c.source else None,
             "contextes": labo.contextes_disponibles(),
             "budget": labo.budget.etat(),
+            "synchro": labo.synchro.etat if labo.synchro else None,
             "sessions": labo.journal.lister(),
             "automaj": [{k: r.get(k) for k in ("id", "auteur", "statut", "fichiers", "raisons",
                                                 "justification", "propose", "commit",
                                                 "redemarrage_conseille")}
                         for r in labo.automaj.lister()[:50]],
         }
+
+    @app.post("/api/synchro")
+    def synchroniser():
+        if not labo.synchro:
+            raise HTTPException(409, "Synchronisation indisponible.")
+        return labo.synchro.passage()
 
     @app.post("/api/sessions")
     def creer(n: NouvelleSession):

@@ -11,6 +11,7 @@
 # provider :
 #   "claude"    Claude Code du PC, compte Claude (abonnement)        — sans clé
 #   "codex"     Codex du PC, compte ChatGPT (abonnement)             — sans clé
+#   "lmstudio"  modèle local chargé dans LM Studio (serveur local)   — sans clé
 #   "ollama"    modèle local servi par Ollama                        — sans clé
 #   "manuel"    relais : Thot te donne le message, tu colles la réponse
 #   "anthropic" / "openai"  API payantes, seulement si tu le veux un jour (clés plus bas)
@@ -29,9 +30,9 @@ modele = ""
 
 [[participants]]
 nom = "Local"
-provider = "ollama"
-modele = "qwen3:14b"      # n'importe quel modèle installé avec `ollama pull`
-url = "http://localhost:11434"
+provider = "lmstudio"
+modele = "qwen/qwen3.5-9b"   # l'identifiant affiché sous le nom du modèle dans LM Studio
+url = "http://localhost:1234"
 
 # [[participants]]
 # nom = "GPT (relais)"
@@ -72,6 +73,19 @@ duree_max_tests_s = 300
 [experiences]
 autoriser_lancement_auto = true
 duree_max_s = 1800
+
+# ---------------------------------------------------------------------------
+# Mise à jour depuis GitHub (comme le Studio TLS) : au démarrage puis toutes les
+# N minutes, Thot récupère les nouveautés de GitHub, teste le nouveau code avant
+# de l'installer, envoie sur GitHub le journal du labo, et redémarre seul si le
+# code a changé. Le dépôt est public : les sessions du journal le sont aussi.
+# ---------------------------------------------------------------------------
+
+[github]
+active = true
+intervalle_minutes = 10
+pousser = true
+branche = "main"
 
 [contexte]
 # Taille maximale (en caractères) du contexte envoyé à chaque tour.

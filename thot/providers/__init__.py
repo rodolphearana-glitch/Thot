@@ -196,6 +196,23 @@ def _codex(p: Participant, systeme: str, prompt: str, racine: Path) -> Reponse:
     return Reponse(texte, 0)
 
 
+def _lmstudio(p: Participant, systeme: str, prompt: str) -> Reponse:
+    """Modèle chargé dans LM Studio (serveur local compatible OpenAI, sans clé)."""
+    url = (p.url or "http://localhost:1234").rstrip("/")
+    try:
+        r = httpx.post(f"{url}/v1/chat/completions", json={
+            "model": p.modele,
+            "messages": [{"role": "system", "content": systeme}, {"role": "user", "content": prompt}],
+        }, timeout=DELAI_S)
+    except httpx.ConnectError as e:
+        raise ErreurProvider(f"LM Studio injoignable à {url} : lance son serveur local (onglet Developer).") from e
+    if r.status_code >= 400:
+        raise ErreurProvider(f"LM Studio {r.status_code} : {r.text[:500]}")
+    d = r.json()
+    texte = d["choices"][0]["message"].get("content") or ""
+    return Reponse(texte, int(d.get("usage", {}).get("total_tokens", 0) or 0))
+
+
 def _echo(p: Participant, systeme: str, prompt: str) -> Reponse:
     """Provider factice, pour les tests et les essais sans clé."""
     derniere = prompt.strip().splitlines()[-1] if prompt.strip() else ""
@@ -213,6 +230,8 @@ def appeler(config: Config, p: Participant, systeme: str, prompt: str) -> Repons
         return _openai(p, config.cle("openai"), systeme, prompt)
     if p.provider == "ollama":
         return _ollama(p, systeme, prompt)
+    if p.provider == "lmstudio":
+        return _lmstudio(p, systeme, prompt)
     if p.provider == "echo":
         return _echo(p, systeme, prompt)
     if p.provider == "manuel":

@@ -30,6 +30,7 @@ class Config:
     auto_maj: dict
     experiences: dict
     contexte: dict
+    github: dict = field(default_factory=lambda: {"active": True})
     racine: Path = field(default=RACINE)
     source: Path | None = None
 
@@ -70,6 +71,7 @@ def charger(chemin: Path | None = None, racine: Path | None = None) -> Config:
         auto_maj=brut.get("auto_maj", {"active": False, "chemins_autorises": []}),
         experiences=brut.get("experiences", {"autoriser_lancement_auto": False}),
         contexte=brut.get("contexte", {"max_caracteres": 120000}),
+        github=brut.get("github", {"active": True, "intervalle_minutes": 10, "pousser": True}),
         racine=racine,
         source=chemin,
     )

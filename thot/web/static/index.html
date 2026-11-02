@@ -95,6 +95,9 @@ button:disabled{opacity:.45;cursor:default}
   <ul id="sessions" class="liste-session"></ul>
   <h2>Budget du jour</h2>
   <div id="budget" class="vide"></div>
+  <h2>GitHub</h2>
+  <div id="synchro" class="vide"></div>
+  <p><button class="second" id="synchroniser">Synchroniser maintenant</button></p>
 </aside>
 
 <section id="centre">
@@ -109,7 +112,7 @@ button:disabled{opacity:.45;cursor:default}
 
 <script>
 const $ = s => document.querySelector(s);
-let courante = null, auto = false;
+let courante = null, auto = false, version = null;
 
 function esc(t){return (t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function rendu(t){
@@ -136,8 +139,17 @@ async function api(chemin, corps){
 
 async function chargerEtat(){
   const e = await api("/api/etat");
+  const sy = e.synchro;
+  if(sy){
+    if(version && sy.version && sy.version!==version && !auto){ location.reload(); return; }
+    version = sy.version || version;
+    $("#synchro").innerHTML = `version ${esc(sy.version||"?")}<br>${esc(sy.message||"")}`
+      + (sy.derniere?`<br><small>${esc(sy.derniere.slice(11,16))}</small>`:"")
+      + (sy.erreur?`<br><span class="erreur">${esc(sy.erreur)}</span>`:"")
+      + (sy.redemarrage?`<br>Nouvelle version prête : redémarrage dès que les tours en cours sont finis.`:"");
+  } else { $("#synchro").textContent = "indisponible"; }
   if(!$("#participants").dataset.fait){
-    $("#participants").innerHTML = e.participants.map(p=>`<label><input type="checkbox" value="${esc(p.nom)}" ${p.provider!=="ollama"?"checked":""}> ${esc(p.nom)} <small>(${esc(p.provider)}${p.modele?" · "+esc(p.modele):""})</small></label>`).join("");
+    $("#participants").innerHTML = e.participants.map(p=>`<label><input type="checkbox" value="${esc(p.nom)}" ${!["ollama","lmstudio","manuel"].includes(p.provider)?"checked":""}> ${esc(p.nom)} <small>(${esc(p.provider)}${p.modele?" · "+esc(p.modele):""})</small></label>`).join("");
     $("#contextes").innerHTML = e.contextes.map(c=>`<label><input type="checkbox" value="${esc(c)}"> ${esc(c.replace(/^contextes\//,""))}</label>`).join("") || '<span class="vide">aucun</span>';
     $("#participants").dataset.fait = 1;
   }
@@ -220,8 +232,15 @@ async function ouvrir(id){ courante=id; auto=false; vueSession(await api(`/api/s
 async function etat(e){ auto=false; vueSession(await api(`/api/sessions/${courante}/etat`,{etat:e})); chargerEtat(); }
 async function pas(){
   const b=$("#avancer"); if(b){b.disabled=true; b.textContent="…";}
-  try{ const s=await api(`/api/sessions/${courante}/avancer`,{}); vueSession(s); chargerEtat(); return s; }
-  catch(e){ alert(e.message); }
+  for(let essai=0; essai<24; essai++){
+    try{ const s=await api(`/api/sessions/${courante}/avancer`,{}); vueSession(s); chargerEtat(); return s; }
+    catch(e){
+      // Thot redémarre peut-être après une mise à jour : on attend qu'il revienne.
+      if(e instanceof TypeError){ await new Promise(r=>setTimeout(r,5000)); continue; }
+      alert(e.message); return;
+    }
+  }
+  alert("Thot ne répond plus. Regarde la fenêtre noire de lancer.bat.");
 }
 async function boucle(){
   while(auto){ const s=await pas(); if(!s||s.etat!=="en_cours"){auto=false; if(s) vueSession(s); break;} }
@@ -234,7 +253,10 @@ $("#creer").onclick = async()=>{
   try{ const s=await api("/api/sessions",{sujet,participants,contextes,tours_max:+$("#tours").value||6});
        $("#sujet").value=""; ouvrir(s.id); }catch(e){ alert(e.message); }
 };
-chargerEtat(); setInterval(()=>{ if(!auto) chargerEtat(); }, 15000);
+$("#synchroniser").onclick = async()=>{ const b=$("#synchroniser"); b.disabled=true; b.textContent="…";
+  try{ await api("/api/synchro",{}); }catch(e){ alert(e.message); }
+  b.disabled=false; b.textContent="Synchroniser maintenant"; chargerEtat(); };
+chargerEtat().catch(()=>{}); setInterval(()=>{ if(!auto) chargerEtat().catch(()=>{}); }, 15000);
 </script>
 </body>
 </html>

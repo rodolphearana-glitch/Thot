@@ -26,6 +26,21 @@ class Labo:
         self.budget = Budget(config.budget, self.racine / ".thot")
         self.automaj = AutoMaj(self.racine, config.auto_maj)
         self._verrous: dict[str, threading.Lock] = {}
+        self._actifs = 0
+        self._verrou_actifs = threading.Lock()
+        self.synchro = None
+
+    def occupe(self) -> bool:
+        """Vrai si un tour ou une expérience est en cours (la synchro attend avant de redémarrer)."""
+        return self._actifs > 0
+
+    def _debut(self):
+        with self._verrou_actifs:
+            self._actifs += 1
+
+    def _fin(self):
+        with self._verrou_actifs:
+            self._actifs -= 1
 
     def _verrou(self, ident: str) -> threading.Lock:
         return self._verrous.setdefault(ident, threading.Lock())
@@ -85,6 +100,13 @@ class Labo:
         return self.journal.creer(sujet, participants, max(1, int(tours_max)), contextes)
 
     def avancer(self, ident: str) -> dict:
+        self._debut()
+        try:
+            return self._avancer(ident)
+        finally:
+            self._fin()
+
+    def _avancer(self, ident: str) -> dict:
         with self._verrou(ident):
             s = self.journal.lire(ident)
             if s["etat"] != "en_cours":
@@ -188,7 +210,7 @@ class Labo:
             self.journal.ajouter_tour(ident, "Labo", msg, "labo", automaj=rec["id"])
 
     def _repondre_local(self, ident: str, demandeur: str, question: str) -> None:
-        locaux = [p for p in self.config.participants if p.provider == "ollama"]
+        locaux = [p for p in self.config.participants if p.provider in ("lmstudio", "ollama")]
         if not locaux:
             self.journal.ajouter_tour(ident, "Labo", "Aucune IA locale configurée.", "labo")
             return
@@ -225,10 +247,17 @@ class Labo:
         self.journal.ajouter_tour(
             ident, "Labo", f"Expérience `{nom}` lancée à la demande de {demandeur}, "
             f"paramètres {json.dumps(params)}. Le résultat arrivera dans un tour suivant.", "labo")
+        self._debut()
         threading.Thread(target=self._executer_experience,
                          args=(ident, demandeur, nom, params, script), daemon=True).start()
 
     def _executer_experience(self, ident, demandeur, nom, params, script) -> None:
+        try:
+            self._executer_experience_(ident, demandeur, nom, params, script)
+        finally:
+            self._fin()
+
+    def _executer_experience_(self, ident, demandeur, nom, params, script) -> None:
         duree = int(self.config.experiences.get("duree_max_s", 1800))
         dossier_res = script.parent / "resultats"
         dossier_res.mkdir(exist_ok=True)

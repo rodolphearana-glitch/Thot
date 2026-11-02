@@ -30,6 +30,8 @@ _verrou = threading.Lock()
 # Toujours soumis à l'accord de Rodolphe, quelle que soit la configuration.
 PROTEGES = [
     "thot/selfupdate.py",
+    "thot/synchro.py",
+    "thot/__main__.py",
     "thot/budget.py",
     "thot/config.py",
     "thot/providers/**",
