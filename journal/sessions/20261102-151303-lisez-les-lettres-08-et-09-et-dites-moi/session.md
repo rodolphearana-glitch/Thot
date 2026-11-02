@@ -1,6 +1,6 @@
 # Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.
 
-Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 2026-11-02T15:13:03+01:00 · état : terminee
+Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 2026-11-02T15:13:03+01:00 · état : en_cours
 Participants : Claude, GPT
 
 Contextes fournis :
@@ -253,3 +253,61 @@ Cela utilise le patch existant, sans nouvelle modification du code. Les valeurs 
 [SUGGESTION] Conserver P5 telle qu’écrite et ajouter une note distinguant sa prédiction numérique de cette attribution causale. Préciser également ce que signifie « proches du hasard » dans P7 : le fichier ne donne actuellement aucun seuil pour la juger.
 
 Je retiens donc des lettres 08–09 une exigence concrète pour la suite : **identifier ce qui produit le gain avant de chercher à le composer ou à le réinvestir.** Le patch nous rapproche de cette mesure ; il ne tranche encore aucune hypothèse sur l’organisation des connaissances.
+
+---
+
+## Tour 9 — Claude (ia)
+*2026-11-02T15:54:46+01:00*
+
+J'ai vérifié les trois remarques de GPT dans le code et je les accepte toutes.
+
+**1. `graine_partage` employée seule.**
+[FAIT] Dans `run.py:131-132`, si `graine_T` est absente, `rng_T` reste le générateur principal `rng`. Or ce générateur ne consomme plus les deux permutations, qui passent maintenant par `rng_partage`. L'initialisation de T change donc par rapport au lancement d'origine. Je n'avais pas vu ce couplage. On évite le problème sans toucher au code : il suffit de toujours donner les deux paramètres. Je fixe les valeurs dans le protocole avant de lancer quoi que ce soit.
+
+**2. P5 prétend trop.**
+[INTERPRÉTATION] GPT a raison. Faire varier T sur un réseau fixe découpe la variance en composantes, mais n'en désigne pas la cause. Supposons qu'une lecture instable vienne justement d'un savoir mal rangé : une forte variance due à T ne réfuterait alors pas le recadrage. Ma phrase « le recadrage tombe à ce stade » était donc fausse dans sa logique. Le recadrage ne devient réfutable qu'avec la mesure de géométrie, qui était l'étape 1 de mon plan : il faut que la géométrie *prédise* la variance. P5 garde sa prédiction chiffrée, mais je retire l'attribution causale.
+
+**3. P7 n'avait pas de seuil.**
+[FAIT] Avec N = 61 entités, le hasard vaut 1/61 ≈ 0,016, et l'ensemble de test contient 31 entités. Je fixe le seuil à 4/31 ≈ 0,13 pour chaque mesure.
+[HYPOTHÈSE] En approximation de Poisson, la probabilité de 5 réussites ou plus au hasard est d'environ 2·10⁻⁴. Sur les quelques centaines de mesures du protocole, on attend donc moins d'un dépassement par chance.
+
+Le fichier disait « ne sera pas modifié après coup ». Je ne réécris rien : j'ajoute une note datée, avant tout lancement, comme pour le journal.
+
+**Ce que je retiens des lettres 08 et 09 pour la suite.** Je reprends la formule de GPT : *identifier ce qui produit le gain avant de chercher à le composer.* Les étapes H3 à H5 (cascade, découverte qui s'améliore) restent intouchées tant que l'instrument ne sait pas dire d'où vient sa propre variance.
+
+**Blocage.** Rodolphe, NumPy manque toujours. Je n'ai pas pu le vérifier moi-même, la commande demandait ton autorisation. Il faut lancer `python -m pip install numpy` avec l'interpréteur qui fait tourner Thot, puis redémarrer le labo.
+
+Le patch ajoute au protocole les valeurs des graines, la réserve sur P5 et le seuil de P7. Il ne touche qu'au fichier de prédictions.
+
+```thot-patch
+diff --git a/experiences/exp1_transformations/PREDICTIONS_variance.md b/experiences/exp1_transformations/PREDICTIONS_variance.md
+--- a/experiences/exp1_transformations/PREDICTIONS_variance.md
++++ b/experiences/exp1_transformations/PREDICTIONS_variance.md
+@@ -9,3 +9,15 @@
+ **P6 — le partage pèse peu.** Pour un réseau donné, l'écart max−min entre valeurs de `graine_partage` reste sous 0,2. *Confiance : faible.* Avec 30 entités d'apprentissage, le choix des exemples peut compter.
+ 
+ **P7 — contrôles.** `nulle` et `temoin` restent proches du hasard dans toutes les combinaisons. *Confiance : élevée.*
++
++---
++
++## Note ajoutée le 2026-11-02 par Claude, avant tout lancement (suite aux remarques de GPT, tour 8)
++
++Les lignes ci-dessus ne sont pas réécrites ; cette note les précise.
++
++**Valeurs fixées.** Toujours renseigner les deux paramètres (si `graine_partage` est seule, `rng_T` retombe sur `rng`, qui ne consomme plus les permutations : l'initialisation de T diffère alors du lancement historique). Pour chaque `graine` ∈ {0, 1, 2} : (a) `graine_partage` = 100 fixe, `graine_T` ∈ {10, 11, 12, 13, 14} ; (b) `graine_T` = 10 fixe, `graine_partage` ∈ {100, 101, 102, 103, 104}. La combinaison (100, 10) est commune aux deux séries.
++
++**Réserve sur P5.** Le seuil chiffré (0,15) est maintenu. L'attribution causale est retirée : une forte variance due à T sur un réseau fixe mesure l'instabilité de la lecture, elle ne réfute pas le « rangement » (un rangement donné peut rendre la lecture instable) ; une faible variance ne prouve pas non plus que le réseau domine. Le recadrage du tour 0 ne sera testable que si une mesure de la géométrie des plongements prédit la variance entre réseaux.
++
++**Seuil de P7.** Hasard = 1/61 ≈ 0,016 ; test = 31 entités. « Proche du hasard » signifie : précision ≤ 4/31 ≈ 0,13 pour chaque mesure `nulle` et `temoin`, à tous les rangs. Un seul dépassement est rapporté tel quel et examiné, pas écarté.
+```
+
+---
+
+## Tour 10 — Labo (labo)
+*2026-11-02T15:55:09+01:00*
+
+Proposition de modification `20261102-155446-688352` de Claude : **testée et appliquée automatiquement**.
+
+Fichiers : experiences/exp1_transformations/PREDICTIONS_variance.md
+
+Raisons : aucune réserve

@@ -5,7 +5,7 @@
     "Claude",
     "GPT"
   ],
-  "tours_max": 4,
+  "tours_max": 6,
   "contextes": [
     "contextes/correspondance/08_gpt_2026-11-02_transmission-technique-PvsNP-transformations.md",
     "contextes/correspondance/09_claude_2026-11-02_reponse-transmission-technique.md",
@@ -17,8 +17,8 @@
     "contextes/correspondance/15_gpt_2026-11-02_tourbillon-socrate-et-memoire-vivante.md",
     "contextes/correspondance/16_gpt_2026-11-02_tls-simulation-et-protocole-de-recherche.md"
   ],
-  "etat": "terminee",
-  "prochain": 4,
+  "etat": "en_cours",
+  "prochain": 5,
   "relais": null,
   "cree": "2026-11-02T15:13:03+01:00",
   "erreurs": []
