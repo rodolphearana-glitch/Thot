@@ -89,3 +89,14 @@ def test_changer_participants_en_cours(config):
         labo.changer_participants(s["id"], [])
     with pytest.raises(KeyError):
         labo.changer_participants(s["id"], ["Inconnu"])
+
+
+def test_tour_deja_en_cours_pas_relance(config):
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["A"], 3, [])
+    labo.en_cours[s["id"]] = {"participant": "A", "provider": "echo", "debut": "2026-11-02T17:00:00+01:00"}
+    lu = labo.avancer(s["id"])
+    assert lu["tours"] == [] and lu["tour_en_cours"]["participant"] == "A"
+    labo.en_cours.clear()
+    assert len(labo.avancer(s["id"])["tours"]) == 1
+    assert labo.lire(s["id"])["tour_en_cours"] is None

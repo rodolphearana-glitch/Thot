@@ -32,6 +32,7 @@ class Labo:
         self.observatoire = Observatoire(self.racine)
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
+        self.en_cours: dict[str, dict] = {}   # session -> tour en cours (qui parle, depuis quand)
         self._verrou_actifs = threading.Lock()
         self.synchro = None
 
@@ -144,11 +145,21 @@ class Labo:
         self.journal.sauver(s)
 
     def avancer(self, ident: str) -> dict:
+        if ident in self.en_cours:
+            # Un tour tourne déjà pour cette session : on ne le relance pas, on renvoie l'état.
+            return self.lire(ident)
         self._debut()
         try:
             return self._avancer(ident)
         finally:
+            self.en_cours.pop(ident, None)
             self._fin()
+
+    def lire(self, ident: str) -> dict:
+        """La session, avec le tour en cours s'il y en a un (qui parle, depuis quand)."""
+        s = self.journal.lire(ident)
+        s["tour_en_cours"] = self.en_cours.get(ident)
+        return s
 
     def _avancer(self, ident: str) -> dict:
         with self._verrou(ident):
@@ -161,6 +172,7 @@ class Labo:
                 return self.journal.lire(ident)
             nom = s["participants"][s["prochain"] % len(s["participants"])]
             p = self.config.participant(nom)
+            self.en_cours[ident] = {"participant": nom, "provider": p.provider, "debut": maintenant()}
             prompt = self.construire_prompt(s, nom)
             systeme = self.charte()
             if s.get("genre") == "observation":

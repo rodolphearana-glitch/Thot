@@ -77,7 +77,7 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
             "budget": labo.budget.etat(),
             "synchro": labo.synchro.etat if labo.synchro else None,
             "observations": labo.observatoire.liste_observations(),
-            "sessions": labo.journal.lister(),
+            "sessions": [x | {"tour_en_cours": labo.en_cours.get(x["id"])} for x in labo.journal.lister()],
             "automaj": [{k: r.get(k) for k in ("id", "auteur", "statut", "fichiers", "raisons",
                                                 "justification", "propose", "commit",
                                                 "redemarrage_conseille")}
@@ -109,7 +109,7 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
 
     @app.get("/api/sessions/{ident}")
     def lire(ident: str):
-        return _protege(labo.journal.lire, ident)
+        return _protege(labo.lire, ident)
 
     @app.post("/api/sessions/{ident}/avancer")
     def avancer(ident: str):

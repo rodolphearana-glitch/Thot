@@ -64,6 +64,7 @@ button:disabled{opacity:.45;cursor:default}
 .tour.local{border-left:4px solid var(--vert)}
 .tour.codage{border-left:4px solid var(--ocre)}
 .tour.relecture{border-left:4px dashed var(--lapis)}
+.tour.en-cours{border-left:4px solid var(--ocre);opacity:.8;font-style:italic}
 .tour.observation{border-left:4px solid var(--vert);background:color-mix(in srgb,var(--vert) 7%,var(--carte))}
 .tour.labo{border-left:4px solid var(--encre-2);font-size:14px}
 .recadrage{background:color-mix(in srgb,var(--ocre) 14%,transparent);padding:2px 6px;border-radius:4px}
@@ -260,7 +261,7 @@ async function chargerEtat(){
     $("#contextes").innerHTML = e.contextes.map(c=>`<label><input type="checkbox" value="${esc(c)}"> ${esc(c.replace(/^contextes\//,""))}</label>`).join("") || '<span class="vide">aucun</span>';
     $("#participants").dataset.fait = 1;
   }
-  const ligne = s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))} · ${s.tours_ia}/${s.tours_max} tours${s.relances?` · ${s.relances} relance${s.relances>1?"s":""}`:""}</small></li>`;
+  const ligne = s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))} · ${s.tours_ia}/${s.tours_max} tours${s.relances?` · ${s.relances} relance${s.relances>1?"s":""}`:""}${s.tour_en_cours?` · <b>${esc(s.tour_en_cours.participant)} parle…</b>`:""}</small></li>`;
   const discussions = e.sessions.filter(s=>s.genre!=="observation"), observations = e.sessions.filter(s=>s.genre==="observation");
   const enCours = discussions.filter(s=>s.etat!=="terminee"), finies = discussions.filter(s=>s.etat==="terminee");
   const obsEnCours = observations.filter(s=>s.etat!=="terminee"), obsFinies = observations.filter(s=>s.etat==="terminee");
@@ -354,7 +355,14 @@ function vueContextes(s){
     try{ vueSession(await api(`/api/sessions/${s.id}/contextes`,{contextes:liste})); }catch(err){ alert(err.message); }
   });
 }
+function depuis(iso){
+  const sec = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/1000));
+  return sec < 60 ? `${sec} s` : `${Math.floor(sec/60)} min ${String(sec%60).padStart(2,"0")}`;
+}
+let suivi = null;
 function vueSession(s){
+  clearTimeout(suivi);
+  if(s.tour_en_cours && !auto){ suivi = setTimeout(async()=>{ if(courante===s.id){ try{ vueSession(await api(`/api/sessions/${s.id}`)); }catch(e){} } }, 4000); }
   derniere = s; vueContextes(s); vueParticipants(s);
   const relais = s.etat==="attente_relais" && s.relais ? `<div class="relais">
      <b>Relais manuel : c'est le tour de ${esc(s.relais.participant)}.</b>
@@ -362,6 +370,12 @@ function vueSession(s){
      <p><button class="second" id="copier">Copier le message</button></p>
      <textarea id="reponse-relais" placeholder="Colle ici la réponse"></textarea>
      <p><button id="envoyer-relais">Ajouter la réponse</button></p></div>` : "";
+  const tec = s.tour_en_cours;
+  const enCoursHtml = tec ? `<div class="tour en-cours"><span class="qui">${esc(tec.participant)}</span>
+     <span class="quand">réfléchit depuis ${depuis(tec.debut)}</span>
+     <div class="contenu">${tec.provider==="claude"||tec.provider==="codex"
+       ? "Il peut lire les fichiers du dépôt avant de répondre : quelques minutes, c'est normal (au plus 30 min)."
+       : "Le modèle local génère sa réponse."}</div></div>` : "";
   const erreurs = (s.erreurs||[]).slice(-2).map(e=>`<p class="erreur">${esc(e.participant)} : ${esc(e.erreur)}</p>`).join("");
   const nbIA = s.tours.filter(t=>t.type==="ia"||t.type==="relais").length;
   const brouillon = $("#intervention") ? $("#intervention").value : "";
@@ -370,11 +384,11 @@ function vueSession(s){
     <h2>${s.genre==="observation"?"Observation":"Session"} · <span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> · ${nbIA} / ${s.tours_max} tours d'IA</h2>
     <div class="tour humain"><div class="contenu">${rendu(s.sujet)}</div></div>
     ${s.tours.map(t=>`<div class="tour ${esc(t.type)}"><span class="qui">${esc(t.auteur)}</span><span class="quand">${esc(t.horodatage.slice(11,16))} · ${esc(t.type)}${t.tokens?" · "+t.tokens+" tokens":""}</span><div class="contenu">${rendu(t.texte)}</div></div>`).join("")}
-    ${erreurs}${relais}
+    ${enCoursHtml}${erreurs}${relais}
    </div>
    <div id="saisie">
     <div class="barre">
-      <button id="avancer" ${s.etat!=="en_cours"?"disabled":""}>Tour suivant</button>
+      <button id="avancer" ${s.etat!=="en_cours"||tec?"disabled":""}>${tec?"…":"Tour suivant"}</button>
       <button class="second" id="auto" ${s.etat!=="en_cours"?"disabled":""}>${auto?"Arrêter l'enchaînement":"Enchaîner les tours"}</button>
       ${s.etat==="en_cours"?`<button class="second" id="pause">Pause</button>`:""}
       ${s.etat==="pause"?`<button class="second" id="reprendre">Reprendre</button>`:""}
