@@ -82,6 +82,8 @@ details>summary::-webkit-details-marker{display:none}
 details>summary::before{content:"▸ ";display:inline-block;width:1em;color:var(--ocre)}
 details[open]>summary::before{content:"▾ "}
 .compte{color:var(--encre-2);font-size:12px}
+.ajout-tours{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.ajout-tours input{width:64px;padding:5px 6px}
 .ajout-contexte{font-size:12px;color:var(--encre-2);margin-top:6px}
 .etiquette.terminee{color:var(--encre-2)}
 @media (max-width: 1000px){
@@ -147,7 +149,8 @@ details[open]>summary::before{content:"▾ "}
 
 <script>
 const $ = s => document.querySelector(s);
-let courante = null, auto = false, version = null, contextesDispo = [], derniere = null;
+let courante = null, auto = false, version = null, contextesDispo = [], derniere = null, nbTours = 2;
+try{ nbTours = Math.max(1, +localStorage.getItem("thot-nb-tours") || 2); }catch(e){}
 
 function esc(t){return (t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function rendu(t){
@@ -258,7 +261,8 @@ function vueSession(s){
       <button class="second" id="auto" ${s.etat!=="en_cours"?"disabled":""}>${auto?"Arrêter l'enchaînement":"Enchaîner les tours"}</button>
       ${s.etat==="en_cours"?`<button class="second" id="pause">Pause</button>`:""}
       ${s.etat==="pause"?`<button class="second" id="reprendre">Reprendre</button>`:""}
-      ${s.etat==="terminee"?`<button class="second" id="plus">Rouvrir (+2 tours)</button>`:""}
+      <span class="ajout-tours"><button class="second" id="plus">${s.etat==="terminee"?"Rouvrir avec":"Ajouter"}</button>
+        <input type="number" id="nb-tours" min="1" max="100" value="${nbTours}"> tours</span>
       ${s.etat!=="terminee"?`<button class="danger" id="clore">Fermer la session</button>`:""}
     </div>
     <div class="ligne">
@@ -271,7 +275,9 @@ function vueSession(s){
   lier("avancer",()=>pas());
   lier("auto",()=>{auto=!auto; if(auto) boucle(); else vueSession(s);});
   lier("pause",()=>etat("pause")); lier("reprendre",()=>etat("en_cours")); lier("clore",()=>{ if(confirm("Fermer cette session ? Elle passera dans « Terminées » et pourra être rouverte.")) etat("terminee"); });
-  lier("plus",async()=>{vueSession(await api(`/api/sessions/${s.id}/tours`,{n:2}));chargerEtat();});
+  lier("plus",async()=>{ nbTours = Math.max(1, +$("#nb-tours").value || 2);
+    try{ localStorage.setItem("thot-nb-tours", String(nbTours)); }catch(e){}
+    vueSession(await api(`/api/sessions/${s.id}/tours`,{n:nbTours})); chargerEtat(); });
   const envoyer = async()=>{const t=$("#intervention").value.trim(); if(!t) return; $("#intervention").value=""; vueSession(await api(`/api/sessions/${s.id}/intervenir`,{texte:t}));};
   lier("intervenir",envoyer);
   $("#intervention").addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); envoyer(); } });
