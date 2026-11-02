@@ -173,6 +173,23 @@ class Labo:
             self.journal.sauver(s)
             return self.journal.lire(ident)
 
+    def changer_contextes(self, ident: str, contextes: list[str]) -> dict:
+        """Ajoute ou retire des contextes d'une session ; le changement est noté dans le fil."""
+        dispo = set(self.contextes_disponibles())
+        nouveaux = sorted(c for c in contextes if c in dispo)
+        with self._verrou(ident):
+            s = self.journal.lire(ident)
+            avant = set(s.get("contextes", []))
+            ajoutes, retires = sorted(set(nouveaux) - avant), sorted(avant - set(nouveaux))
+            if not ajoutes and not retires:
+                return s
+            s["contextes"] = nouveaux
+            self.journal.sauver(s)
+            lignes = [f"+ `{c}`" for c in ajoutes] + [f"− `{c}`" for c in retires]
+            self.journal.ajouter_tour(ident, "Labo", "Contextes de la session modifiés par Rodolphe :\n\n"
+                                      + "\n".join(lignes), "labo")
+            return self.journal.lire(ident)
+
     def ajouter_tours(self, ident: str, n: int) -> dict:
         with self._verrou(ident):
             s = self.journal.lire(ident)

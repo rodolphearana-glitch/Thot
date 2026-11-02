@@ -109,6 +109,8 @@ class Synchro:
                         else:
                             messages.append(f"{nouveaux} nouveauté(s) récupérée(s) de GitHub")
                             if code:
+                                if any(t.startswith("requirements") for t in touches):
+                                    self._installer()
                                 self.etat["redemarrage"] = True
                 # 3. Pousser ce que le PC a produit.
                 if not erreur and self.config.get("pousser", True):
@@ -123,6 +125,14 @@ class Synchro:
                          message=", ".join(messages) or "à jour", version=self.version(),
                          version_code=self.version_code())
         return self.etat
+
+    def _installer(self) -> None:
+        """Nouvelles dépendances : installées tout de suite (lancer.bat le refait aussi au redémarrage)."""
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements.txt"],
+                           cwd=self.racine, capture_output=True, timeout=900)
+        except (OSError, subprocess.SubprocessError):
+            pass
 
     def _verser(self) -> bool:
         chemins = [c for c in ("journal", "experiences") if (self.racine / c).exists()]

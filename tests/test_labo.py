@@ -58,3 +58,14 @@ def test_api(config):
     assert len(s["tours"]) == 1
     assert client.post("/api/sessions", json={"sujet": "x", "participants": ["Inconnu"]}).status_code == 400
     assert client.get("/").status_code == 200
+
+
+def test_changer_contextes(config):
+    labo = Labo(config)
+    (config.racine / "contextes" / "a.md").write_text("A\n")
+    (config.racine / "contextes" / "b.md").write_text("B\n")
+    s = labo.creer("Sujet", ["A"], 2, ["contextes/a.md"])
+    s = labo.changer_contextes(s["id"], ["contextes/b.md", "../hors.md"])
+    assert s["contextes"] == ["contextes/b.md"]
+    assert "+ `contextes/b.md`" in s["tours"][-1]["texte"] and "− `contextes/a.md`" in s["tours"][-1]["texte"]
+    assert "B" in labo.construire_prompt(labo.journal.lire(s["id"]), "A")

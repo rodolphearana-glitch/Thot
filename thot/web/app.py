@@ -32,6 +32,10 @@ class Etat(BaseModel):
     etat: str
 
 
+class Contextes(BaseModel):
+    contextes: list[str]
+
+
 class Nombre(BaseModel):
     n: int = 2
 
@@ -101,6 +105,10 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
     @app.post("/api/sessions/{ident}/etat")
     def changer_etat(ident: str, e: Etat):
         return _protege(labo.changer_etat, ident, e.etat)
+
+    @app.post("/api/sessions/{ident}/contextes")
+    def contextes(ident: str, c: Contextes):
+        return _protege(labo.changer_contextes, ident, c.contextes)
 
     @app.post("/api/sessions/{ident}/tours")
     def plus_de_tours(ident: str, n: Nombre):

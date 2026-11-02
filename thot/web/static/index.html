@@ -72,6 +72,16 @@ button:disabled{opacity:.45;cursor:default}
 .carte-maj .actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .cases label{font-size:13px;margin:2px 0}
 .relais{border:2px dashed var(--ocre);border-radius:8px;padding:12px;margin-bottom:14px}
+details.bloc{border-bottom:1px solid var(--trait);padding:6px 0 10px;margin-bottom:6px}
+details.bloc>summary{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--encre-2);cursor:pointer;padding:6px 0;list-style:none}
+details.sous-bloc{margin:6px 0 6px 6px}
+details.sous-bloc>summary{font-size:14px;cursor:pointer;padding:3px 0;color:var(--encre);list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ ";display:inline-block;width:1em;color:var(--ocre)}
+details[open]>summary::before{content:"▾ "}
+.compte{color:var(--encre-2);font-size:12px}
+.ajout-contexte{font-size:12px;color:var(--encre-2);margin-top:6px}
+.etiquette.terminee{color:var(--encre-2)}
 @media (max-width: 1000px){
   main{grid-template-columns:1fr}
   aside,section{max-height:none}
@@ -83,21 +93,44 @@ button:disabled{opacity:.45;cursor:default}
 <header><h1>THOT<span> ·</span></h1><span class="devise">préciser sans épuiser</span></header>
 <main>
 <aside class="gauche">
-  <h2>Nouvelle session</h2>
-  <label>Sujet<textarea id="sujet" placeholder="La question, l'hypothèse ou le texte de départ"></textarea></label>
-  <h2>Participants (dans l'ordre)</h2>
-  <div id="participants" class="cases"></div>
-  <label style="margin-top:8px">Tours d'IA maximum <input type="number" id="tours" value="6" min="1" max="100"></label>
-  <h2>Contextes</h2>
-  <div id="contextes" class="cases"></div>
-  <p><button id="creer">Ouvrir la session</button></p>
-  <h2>Sessions</h2>
-  <ul id="sessions" class="liste-session"></ul>
-  <h2>Budget du jour</h2>
-  <div id="budget" class="vide"></div>
-  <h2>GitHub</h2>
-  <div id="synchro" class="vide"></div>
-  <p><button class="second" id="synchroniser">Synchroniser maintenant</button></p>
+  <details class="bloc" id="bloc-courante" data-cle="courante" open>
+    <summary>Contextes de la session ouverte</summary>
+    <div id="contextes-courante" class="cases"><span class="vide">Aucune session ouverte.</span></div>
+  </details>
+
+  <details class="bloc" data-cle="sessions" open>
+    <summary>Sessions</summary>
+    <details class="sous-bloc" data-cle="sessions-en-cours" open>
+      <summary>En cours <span id="nb-en-cours" class="compte"></span></summary>
+      <ul id="sessions-en-cours" class="liste-session"></ul>
+    </details>
+    <details class="sous-bloc" data-cle="sessions-terminees">
+      <summary>Terminées <span id="nb-terminees" class="compte"></span></summary>
+      <ul id="sessions-terminees" class="liste-session"></ul>
+    </details>
+  </details>
+
+  <details class="bloc" data-cle="nouvelle">
+    <summary>Nouvelle session</summary>
+    <label>Sujet<textarea id="sujet" placeholder="La question, l'hypothèse ou le texte de départ"></textarea></label>
+    <h2>Participants (dans l'ordre)</h2>
+    <div id="participants" class="cases"></div>
+    <label style="margin-top:8px">Tours d'IA maximum <input type="number" id="tours" value="6" min="1" max="100"></label>
+    <details class="sous-bloc" data-cle="nouvelle-contextes" open>
+      <summary>Contextes</summary>
+      <div id="contextes" class="cases"></div>
+    </details>
+    <p><button id="creer">Ouvrir la session</button></p>
+  </details>
+
+  <details class="bloc" data-cle="etat">
+    <summary>Budget et GitHub</summary>
+    <h2>Budget du jour</h2>
+    <div id="budget" class="vide"></div>
+    <h2>GitHub</h2>
+    <div id="synchro" class="vide"></div>
+    <p><button class="second" id="synchroniser">Synchroniser maintenant</button></p>
+  </details>
 </aside>
 
 <section id="centre">
@@ -112,7 +145,7 @@ button:disabled{opacity:.45;cursor:default}
 
 <script>
 const $ = s => document.querySelector(s);
-let courante = null, auto = false, version = null;
+let courante = null, auto = false, version = null, contextesDispo = [], derniere = null;
 
 function esc(t){return (t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function rendu(t){
@@ -154,8 +187,14 @@ async function chargerEtat(){
     $("#contextes").innerHTML = e.contextes.map(c=>`<label><input type="checkbox" value="${esc(c)}"> ${esc(c.replace(/^contextes\//,""))}</label>`).join("") || '<span class="vide">aucun</span>';
     $("#participants").dataset.fait = 1;
   }
-  $("#sessions").innerHTML = e.sessions.map(s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))}</small></li>`).join("") || '<li class="vide">aucune</li>';
-  document.querySelectorAll("#sessions li[data-id]").forEach(li=>li.onclick=()=>ouvrir(li.dataset.id));
+  const ligne = s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))}</small></li>`;
+  const enCours = e.sessions.filter(s=>s.etat!=="terminee"), finies = e.sessions.filter(s=>s.etat==="terminee");
+  $("#sessions-en-cours").innerHTML = enCours.map(ligne).join("") || '<li class="vide">aucune</li>';
+  $("#sessions-terminees").innerHTML = finies.map(ligne).join("") || '<li class="vide">aucune</li>';
+  $("#nb-en-cours").textContent = `(${enCours.length})`; $("#nb-terminees").textContent = `(${finies.length})`;
+  document.querySelectorAll(".liste-session li[data-id]").forEach(li=>li.onclick=()=>ouvrir(li.dataset.id));
+  const avant = contextesDispo.length; contextesDispo = e.contextes;
+  if(derniere && !avant) vueContextes(derniere);
   const b = e.budget;
   $("#budget").innerHTML = `${b.appels} / ${b.plafonds.appels_par_jour} appels<br>` +
     Object.entries(b.tokens||{}).map(([k,v])=>`${esc(k)} : ${v.toLocaleString("fr")} tokens`).join("<br>");
@@ -183,7 +222,18 @@ async function chargerEtat(){
   });
 }
 
+function vueContextes(s){
+  const choisis = new Set(s.contextes||[]);
+  const tous = [...new Set([...contextesDispo, ...choisis])].sort();
+  $("#contextes-courante").innerHTML = tous.map(c=>`<label><input type="checkbox" value="${esc(c)}" ${choisis.has(c)?"checked":""}> ${esc(c.replace(/^contextes\//,""))}</label>`).join("")
+    + `<div class="ajout-contexte">Cocher ou décocher change les contextes envoyés aux tours suivants.</div>`;
+  $("#contextes-courante").querySelectorAll("input").forEach(i=>i.onchange=async()=>{
+    const liste=[...$("#contextes-courante").querySelectorAll("input:checked")].map(x=>x.value);
+    try{ vueSession(await api(`/api/sessions/${s.id}/contextes`,{contextes:liste})); }catch(err){ alert(err.message); }
+  });
+}
 function vueSession(s){
+  derniere = s; vueContextes(s);
   const relais = s.etat==="attente_relais" && s.relais ? `<div class="relais">
      <b>Relais manuel : c'est le tour de ${esc(s.relais.participant)}.</b>
      <p>Copie ce message, donne-le à ${esc(s.relais.participant)}, puis colle sa réponse.</p>
@@ -257,6 +307,10 @@ $("#creer").onclick = async()=>{
 $("#synchroniser").onclick = async()=>{ const b=$("#synchroniser"); b.disabled=true; b.textContent="…";
   try{ await api("/api/synchro",{}); }catch(e){ alert(e.message); }
   b.disabled=false; b.textContent="Synchroniser maintenant"; chargerEtat(); };
+document.querySelectorAll("details[data-cle]").forEach(d=>{
+  try{ const v=localStorage.getItem("thot-"+d.dataset.cle); if(v!==null) d.open = v==="1"; }catch(e){}
+  d.addEventListener("toggle",()=>{ try{ localStorage.setItem("thot-"+d.dataset.cle, d.open?"1":"0"); }catch(e){} });
+});
 chargerEtat().catch(()=>{});
 if(location.hash.length>1){ ouvrir(decodeURIComponent(location.hash.slice(1))).catch(()=>{}); }
 setInterval(()=>{ if(!auto) chargerEtat().catch(()=>{}); }, 15000);

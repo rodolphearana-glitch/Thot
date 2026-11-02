@@ -254,7 +254,7 @@ class AutoMaj:
             rec["statut"] = "applique"
             rec["commit"] = sha
             rec["applique"] = maintenant()
-            rec["redemarrage_conseille"] = any(f.endswith(".py") for f in rec["fichiers"])
+            rec["redemarrage_conseille"] = any(f.startswith("thot/") and f.endswith(".py") for f in rec["fichiers"])
         finally:
             self._git("worktree", "remove", "--force", str(wt))
             self._git("branch", "-D", branche)
