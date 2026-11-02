@@ -1,0 +1,20 @@
+{
+  "id": "20261102-173240-analyse-generale-des-sessions-observees",
+  "sujet": "Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.",
+  "participants": [
+    "Claude",
+    "Local"
+  ],
+  "tours_max": 4,
+  "contextes": [],
+  "etat": "en_cours",
+  "prochain": 0,
+  "relais": null,
+  "cree": "2026-11-02T17:32:40+01:00",
+  "erreurs": [],
+  "genre": "observation",
+  "sources": [
+    "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi"
+  ],
+  "relances": 0
+}
