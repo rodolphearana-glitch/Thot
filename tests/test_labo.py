@@ -150,3 +150,18 @@ def test_interrompre_un_tour(config, tmp_path, monkeypatch):
     lu = labo.lire(s["id"])
     assert lu["etat"] == "pause" and "interrompu" in lu["erreurs"][-1]["erreur"].lower()
     assert lu["tours"] == [] and lu["tour_en_cours"] is None
+
+
+def test_erreur_inattendue_enregistree(config, monkeypatch):
+    """Une erreur qui n'est pas prévue (délai réseau du modèle local, réponse illisible) s'écrit dans
+    la session au lieu de faire disparaître le tour."""
+    from thot import providers
+
+    def casse(*a, **k):
+        raise TimeoutError("le modèle local n'a pas répondu")
+    monkeypatch.setattr(providers, "appeler", casse)
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["A"], 2, [])
+    s = labo.avancer(s["id"])
+    assert s["etat"] == "pause" and "TimeoutError" in s["erreurs"][-1]["erreur"]
+    assert labo.lire(s["id"])["tour_en_cours"] is None

@@ -206,9 +206,15 @@ class Labo:
                 s["relais"] = {"participant": nom, "texte": f"{systeme}\n\n---\n\n{prompt}"}
                 self.journal.sauver(s)
                 return s
-            except (BudgetDepasse, providers.ErreurProvider) as e:
+            except Exception as e:
+                # Toute erreur (y compris un délai dépassé ou une réponse inattendue du modèle local)
+                # s'écrit dans la session et s'affiche : un tour ne disparaît plus sans laisser de trace.
+                message = str(e) or type(e).__name__
+                if not isinstance(e, (BudgetDepasse, providers.ErreurProvider)):
+                    message = f"{type(e).__name__} : {message}"
+                print(f"[Thot] {ident} : tour de {nom} en erreur : {masquer(message)}", flush=True)
                 s["etat"] = "pause"
-                s["erreurs"].append({"quand": maintenant(), "participant": nom, "erreur": masquer(str(e))})
+                s["erreurs"].append({"quand": maintenant(), "participant": nom, "erreur": masquer(message)})
                 self.journal.sauver(s)
                 return s
             self.budget.enregistrer(p.provider, rep.tokens)
