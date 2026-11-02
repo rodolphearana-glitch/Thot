@@ -12,7 +12,8 @@ from pathlib import Path
 
 _verrou = threading.Lock()
 
-PROVIDERS_PAYANTS = ("anthropic", "openai")
+PROVIDERS_PAYANTS = ("anthropic", "openai")      # plafond de tokens (API payantes)
+PROVIDERS_COMPTES = ("anthropic", "openai", "claude", "codex")  # plafond d'appels (API et abonnements)
 
 
 class BudgetDepasse(Exception):
@@ -44,9 +45,9 @@ class Budget:
         with _verrou:
             etat = self._lire()
             max_appels = int(self.config.get("appels_par_jour", 0))
+            if provider in PROVIDERS_COMPTES and etat["appels"] >= max_appels:
+                raise BudgetDepasse(f"Plafond d'appels du jour atteint ({max_appels}).")
             if provider in PROVIDERS_PAYANTS:
-                if etat["appels"] >= max_appels:
-                    raise BudgetDepasse(f"Plafond d'appels du jour atteint ({max_appels}).")
                 plafond = int(self.config.get(f"{provider}_tokens_par_jour", 0))
                 if etat["tokens"].get(provider, 0) >= plafond:
                     raise BudgetDepasse(
@@ -56,8 +57,9 @@ class Budget:
     def enregistrer(self, provider: str, tokens: int) -> None:
         with _verrou:
             etat = self._lire()
-            if provider in PROVIDERS_PAYANTS:
+            if provider in PROVIDERS_COMPTES:
                 etat["appels"] += 1
+            if provider in PROVIDERS_PAYANTS:
                 etat["tokens"][provider] = etat["tokens"].get(provider, 0) + int(tokens)
             self._ecrire(etat)
 

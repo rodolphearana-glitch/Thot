@@ -22,13 +22,14 @@ Le dépôt est public : on ne brevette pas le soleil.
 
 ## Lancer le labo (Windows)
 
-1. Installe [Python 3.11 ou plus récent](https://www.python.org/downloads/) (coche « Add Python to PATH »).
-2. Récupère le dépôt (bouton vert **Code → Download ZIP**, ou `git clone`).
-3. Double-clique sur **`lancer.bat`**. La première fois, il installe ce qu'il faut et crée `thot.config.toml`.
-4. Ouvre `thot.config.toml` avec le Bloc-notes et mets-y tes clés d'API et le nom du modèle GPT. Ce fichier ne part **jamais** sur GitHub.
-5. Relance `lancer.bat` : le labo s'ouvre dans ton navigateur sur http://127.0.0.1:8790.
+Thot parle à Claude et à GPT **comme le Studio TLS** : par Claude Code et Codex installés sur le PC, connectés à tes comptes Claude et ChatGPT. Aucune clé d'API.
 
-Sans clé d'API, tu peux déjà t'en servir : un participant en `provider = "manuel"` te donne le message à copier, tu colles la réponse, et tout est journalisé pareil.
+1. Il faut Python 3.11 ou plus récent ([python.org](https://www.python.org/downloads/), case « Add Python to PATH » cochée), et Claude Code et Codex connectés (s'ils marchent pour le Studio TLS, c'est bon).
+2. Récupère le dépôt (bouton vert **Code → Download ZIP**, ou `git clone`).
+3. Double-clique sur **`lancer.bat`**. La première fois, il installe ce qu'il faut et crée `thot.config.toml` (ignoré par Git).
+4. Le labo s'ouvre dans ton navigateur, sur http://127.0.0.1:8790 (ou le port libre suivant si celui-ci est pris).
+
+Dans une session, Claude et GPT lisent le dépôt en **lecture seule** : ils peuvent ouvrir les contextes et les expériences eux-mêmes, mais ne modifient rien directement. Leurs propositions de modification passent par l'auto-mise à jour.
 
 Sous Linux ou macOS : `pip install -r requirements.txt`, `cp thot.config.example.toml thot.config.toml`, puis `python -m thot`.
 

@@ -1,7 +1,13 @@
 """Fournisseurs de modèles : Claude, GPT, IA locale (Ollama), relais manuel."""
 from __future__ import annotations
 
+import json
+import os
+import shutil
+import subprocess
+import threading
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 
@@ -23,6 +29,7 @@ class ErreurProvider(Exception):
 
 
 DELAI_S = 600.0
+DELAI_CLI_S = 1800
 
 
 def _anthropic(p: Participant, cle: str, systeme: str, prompt: str) -> Reponse:
@@ -101,6 +108,94 @@ def _ollama(p: Participant, systeme: str, prompt: str) -> Reponse:
     return Reponse(d.get("message", {}).get("content", ""), tokens)
 
 
+NO_WINDOW = 0x08000000 if os.name == "nt" else 0
+MOTS_LIMITE = ("usage limit", "rate limit", "limit reached", "limite d'utilisation", "quota")
+
+
+def trouver_claude() -> str | None:
+    """Claude Code installé sur le PC (même recherche que Studio TLS)."""
+    trouve = shutil.which("claude")
+    if trouve:
+        return trouve
+    maison = os.path.expanduser("~")
+    for c in (os.path.join(maison, ".local", "bin", "claude.exe"),
+              os.path.join(maison, ".local", "bin", "claude"),
+              os.path.join(os.environ.get("APPDATA", ""), "npm", "claude.cmd"),
+              os.path.join(maison, ".claude", "local", "claude")):
+        if c and os.path.isfile(c):
+            return c
+    return None
+
+
+def _executer(commande: list[str], entree: str, racine: Path, env=None) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run(commande, input=entree, capture_output=True, text=True, encoding="utf-8",
+                              errors="replace", cwd=racine, env=env, timeout=DELAI_CLI_S,
+                              creationflags=NO_WINDOW)
+    except subprocess.TimeoutExpired as e:
+        raise ErreurProvider(f"Pas de réponse après {DELAI_CLI_S} s.") from e
+    except OSError as e:
+        raise ErreurProvider(str(e)[:300]) from e
+
+
+def _claude_code(p: Participant, systeme: str, prompt: str, racine: Path) -> Reponse:
+    """Claude Code du PC, connecté au compte Claude (abonnement) : aucune clé d'API.
+
+    Lecture seule : il peut lire le dépôt (contextes, expériences) mais ne modifie rien ; les modifications
+    passent par les blocs thot-patch et l'auto-mise à jour."""
+    exe = trouver_claude()
+    if not exe:
+        raise ErreurProvider("Claude Code introuvable sur ce PC (le même que celui du Studio TLS).")
+    commande = [exe, "-p", "--output-format", "json", "--allowedTools", "Read,Glob,Grep",
+                "--append-system-prompt", systeme]
+    if p.modele:
+        commande += ["--model", p.modele]
+    # La connexion du compte, jamais une clé d'API qui traînerait dans l'environnement.
+    env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
+    fait = _executer(commande, prompt, racine, env)
+    try:
+        res = json.loads(fait.stdout or "{}")
+    except ValueError:
+        res = {"result": fait.stdout}
+    texte = (res.get("result") or "").strip()
+    bilan = (texte + " " + fait.stderr).lower()
+    if "not logged in" in bilan or "/login" in bilan:
+        raise ErreurProvider("Claude Code n'est pas connecté au compte (lance `claude` une fois pour te connecter).")
+    if any(m in bilan for m in MOTS_LIMITE) and (fait.returncode != 0 or res.get("is_error")):
+        raise ErreurProvider("Limite d'utilisation de Claude atteinte : " + (texte or fait.stderr)[:300])
+    if fait.returncode != 0 or res.get("is_error") or not texte:
+        raise ErreurProvider("Claude Code : " + (texte or fait.stderr.strip()[:300] or f"code {fait.returncode}"))
+    u = res.get("usage") or {}
+    return Reponse(texte, int(u.get("input_tokens", 0) or 0) + int(u.get("output_tokens", 0) or 0))
+
+
+def _codex(p: Participant, systeme: str, prompt: str, racine: Path) -> Reponse:
+    """Codex du PC, connecté au compte ChatGPT : aucune clé d'API. Bac à sable en lecture seule."""
+    exe = shutil.which("codex")
+    if not exe:
+        raise ErreurProvider("Codex introuvable sur ce PC (commande « codex » absente, la même que pour le Studio TLS).")
+    dossier = racine / ".thot"
+    dossier.mkdir(exist_ok=True)
+    sortie = dossier / f"codex-{os.getpid()}-{threading.get_ident()}.txt"
+    if sortie.exists():
+        sortie.unlink()
+    commande = [exe, "exec", "--skip-git-repo-check", "-C", str(racine), "--sandbox", "read-only",
+                "-o", str(sortie)]
+    if p.modele:
+        commande += ["-m", p.modele]
+    commande.append("-")
+    fait = _executer(commande, f"{systeme}\n\n---\n\n{prompt}", racine)
+    texte = sortie.read_text(encoding="utf-8", errors="replace").strip() if sortie.exists() else ""
+    if sortie.exists():
+        sortie.unlink()
+    bilan = (fait.stderr + fait.stdout).lower()
+    if not texte and any(m in bilan for m in MOTS_LIMITE):
+        raise ErreurProvider("Limite d'utilisation de Codex atteinte : " + (fait.stderr or fait.stdout).strip()[-300:])
+    if fait.returncode != 0 or not texte:
+        raise ErreurProvider("Codex : " + ((fait.stderr or fait.stdout).strip()[-300:] or f"code {fait.returncode}"))
+    return Reponse(texte, 0)
+
+
 def _echo(p: Participant, systeme: str, prompt: str) -> Reponse:
     """Provider factice, pour les tests et les essais sans clé."""
     derniere = prompt.strip().splitlines()[-1] if prompt.strip() else ""
@@ -108,6 +203,10 @@ def _echo(p: Participant, systeme: str, prompt: str) -> Reponse:
 
 
 def appeler(config: Config, p: Participant, systeme: str, prompt: str) -> Reponse:
+    if p.provider == "claude":
+        return _claude_code(p, systeme, prompt, config.racine)
+    if p.provider == "codex":
+        return _codex(p, systeme, prompt, config.racine)
     if p.provider == "anthropic":
         return _anthropic(p, config.cle("anthropic"), systeme, prompt)
     if p.provider == "openai":
