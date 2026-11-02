@@ -127,6 +127,9 @@ def precision_T(m, T, rel_source, tetes, cibles):
 def lancer(p: dict) -> dict:
     debut = time.time()
     rng = np.random.default_rng(p["graine"])
+    # Sources de hasard séparables ; absentes, tout suit « graine » exactement comme avant.
+    rng_partage = np.random.default_rng(p["graine_partage"]) if p.get("graine_partage") is not None else rng
+    rng_T = np.random.default_rng(p["graine_T"]) if p.get("graine_T") is not None else rng
     N, S = p["N"], list(p["decalages"])
     ia, ib = S.index(p["a"]), S.index(p["b"])
     compo = (np.arange(N) + p["a"] + p["b"]) % N
@@ -145,9 +148,9 @@ def lancer(p: dict) -> dict:
     inter = predire(entraine, np.arange(N), np.full(N, ia))
     deux_sauts = float((predire(entraine, inter, np.full(N, ib)) == compo).mean())
 
-    ordre = rng.permutation(N)
+    ordre = rng_partage.permutation(N)
     app, test = ordre[: N // 2], ordre[N // 2:]
-    nulle = rng.permutation(N)
+    nulle = rng_partage.permutation(N)
 
     conditions = {
         "structure": (entraine, compo),
@@ -158,7 +161,7 @@ def lancer(p: dict) -> dict:
     for nom, (modele, cible) in conditions.items():
         resultats[nom] = {}
         for k in p["rangs"]:
-            T = apprendre_T(rng, modele, ia, app, cible[app], k, p["pas_T"])
+            T = apprendre_T(rng_T, modele, ia, app, cible[app], k, p["pas_T"])
             resultats[nom][str(k)] = {
                 "app": precision_T(modele, T, ia, app, cible[app]),
                 "test": precision_T(modele, T, ia, test, cible[test]),
