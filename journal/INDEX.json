@@ -84,7 +84,7 @@
     {
       "contextes": [],
       "cree": "2026-11-02T17:22:43+01:00",
-      "dernier_evenement": "2026-11-02T17:24:32+01:00",
+      "dernier_evenement": "2026-11-02T17:25:25+01:00",
       "etat": "en_cours",
       "experiences_demandees": 0,
       "experiences_executees": 0,
@@ -106,8 +106,64 @@
         "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi"
       ],
       "sujet": "Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.",
-      "tours": 1,
-      "tours_ia": 1
+      "tours": 2,
+      "tours_ia": 2
+    },
+    {
+      "contextes": [],
+      "cree": "2026-11-02T17:24:56+01:00",
+      "dernier_evenement": "2026-11-02T17:24:56+01:00",
+      "etat": "en_cours",
+      "experiences_demandees": 0,
+      "experiences_executees": 0,
+      "fichiers": {
+        "etat": "sessions/20261102-172456-analyse-generale-des-sessions-observees/session.json",
+        "lisible": "sessions/20261102-172456-analyse-generale-des-sessions-observees/session.md",
+        "tours": "sessions/20261102-172456-analyse-generale-des-sessions-observees/tours.jsonl"
+      },
+      "genre": "observation",
+      "id": "20261102-172456-analyse-generale-des-sessions-observees",
+      "modifications_proposees": 0,
+      "participants": [
+        "Claude",
+        "GPT"
+      ],
+      "recadrages": 0,
+      "relances": 0,
+      "sources": [
+        "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi"
+      ],
+      "sujet": "Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.",
+      "tours": 0,
+      "tours_ia": 0
+    },
+    {
+      "contextes": [],
+      "cree": "2026-11-02T17:25:37+01:00",
+      "dernier_evenement": "2026-11-02T17:25:37+01:00",
+      "etat": "en_cours",
+      "experiences_demandees": 0,
+      "experiences_executees": 0,
+      "fichiers": {
+        "etat": "sessions/20261102-172537-analyse-generale-des-sessions-observees/session.json",
+        "lisible": "sessions/20261102-172537-analyse-generale-des-sessions-observees/session.md",
+        "tours": "sessions/20261102-172537-analyse-generale-des-sessions-observees/tours.jsonl"
+      },
+      "genre": "observation",
+      "id": "20261102-172537-analyse-generale-des-sessions-observees",
+      "modifications_proposees": 0,
+      "participants": [
+        "Claude",
+        "Local"
+      ],
+      "recadrages": 0,
+      "relances": 0,
+      "sources": [
+        "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi"
+      ],
+      "sujet": "Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.",
+      "tours": 0,
+      "tours_ia": 0
     }
   ]
 }

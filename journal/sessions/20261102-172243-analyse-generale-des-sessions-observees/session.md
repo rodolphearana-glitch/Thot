@@ -77,3 +77,55 @@ Sources lues : commit `6effc05`, fichiers `AGENTS.md`, formulations originales, 
 [SUGGESTION] Sur plusieurs sessions, relever chaque correction explicite, puis vérifier séparément sa conservation dans les paramètres exécutés et dans les résumés ultérieurs. Cela testerait l’hypothèse de persistance inégale.
 
 [SUGGESTION] Pour examiner l’indépendance des convergences, comparer des analyses produites avant lecture des conclusions des autres à celles produites après. Préinscrire les critères : erreurs détectées, citations exactes et conclusions non étayées. Aucune expérience n’est déclenchée dans cette observation.
+
+---
+
+## Tour 1 — Local (ia)
+*2026-11-02T17:25:25+01:00*
+
+### Répétitions  
+[FAIT] La distinction entre « résultat local » et « amélioration cumulative » revient chez GPT aux tours 5, 11, 25 et 27. Au tour 27 : *« découvrir une transformation utile et **apprendre à découvrir les suivantes** sont deux résultats distincts ».  
+[INTERPRÉTATION] Cette répétition maintient une limite utile (séparation des hypothèses H3–H5), mais sa fréquence ne constitue aucun résultat empirique sur l'effet cumulatif.
+
+### Contradictions  
+[FAIT] Claude écrit au tour 6 : *« une relation jamais apprise se lit dans le réseau gelé »*, puis corrige cette formulation au tour 6 en précisant que T a été entraînée. Au tour 31, il réécrit : *« une transformation linéaire lit en partie une composition jamais apprise dans un réseau gelé »*.  
+[FAIT] Le Local déclare à son tour 29 être un « **troisième point de vue indépendant** », mais ses analyses sont entièrement basées sur les échanges précédents.  
+[INTERPRÉTATION] Ces contradictions illustrent que les formulations initiales ne sont pas toujours conservées dans les résumés, et que l'« indépendance » déclarée peut masquer une dépendance au corpus antérieur.
+
+### Convergences (et pourquoi elles pourraient ne pas être indépendantes)  
+[FAIT] Claude adopte explicitement la phrase de GPT au tour 9 : *« identifier ce qui produit le gain avant de chercher à le composer ».  
+[FAIT] Le Local synthétise les échanges précédents sans apporter d'objection autonome.  
+[HYPOTHÈSE] Ces convergences peuvent résulter d'une adoption argumentative (pour renforcer un point commun) plutôt que d'une découverte indépendante, car elles s'appuient toutes deux sur le corpus déjà établi.
+
+### Transformations de cadre  
+1. **Cadre initial** : Claude attribue la dispersion des performances au rangement du savoir (tour 0).  
+2. **Recadrage déclaré exact** :  
+   > [RECADRAGE] Ne plus chercher la bonne transformation de lecture T, mais comprendre ce qui, pendant l'apprentissage, rend une conclusion lisible ou non : l'accessibilité devient une propriété du rangement, pas de la lecture.  
+   *(tour 0, Claude)*  
+3. **Cadre ensuite utilisé** : Après les objections sur les sources de hasard (tours 5–9), Claude écrit au tour 6 : *« Je le subordonne à la séparation des sources de variance que propose GPT »*.  
+4. **Changements observables** : Ajout de paramètres (`graine_T`, `graine_partage`) et prédictions dans `PREDICTIONS_variance.md` (tours 6–9, Claude). Les cinq lancements suivent ce protocole (tours 37–41, Labo).  
+5. **Hypothèse** : Le recadrage a contribué à rendre l'attribution causale discutable et à déplacer le travail vers la mesure des sources de variation.  
+6. **Raison possible d'erreur** : Les modifications peuvent découler principalement de l'objection technique de GPT, indépendamment du recadrage déclaré. Le cadre effectivement mis en œuvre est celui de la sensibilité expérimentale ; les résultats ne valident pas l'attribution au rangement.
+
+### Conséquences différées  
+[FAIT] La correction des tours 5–9 produit une conséquence observable au tour 31 : chaque demande renseigne explicitement `graine_T` et `graine_partage`.  
+[INTERPRÉTATION] La correction persiste donc dans les paramètres utilisés, tandis que sa formulation conceptuelle reste fragile (tour 31 réintroduit *« composition jamais apprise »*).
+
+### Prédictions et résultats  
+- [FAIT] Les graines 3 et 4 échouent (`ModuleNotFoundError: No module named 'numpy'`). Aucune mesure ne confronte leur prédiction. *(tours 0–4, Claude)*  
+- [FAIT] L'expérience du Local est demandée (tour 29) puis refusée comme inconnue (tour 30). Ce n'est pas une expérience exécutée.  
+- [FAIT] Pour le réseau 0 et le partage 100, les cinq résultats donnent au rang 32 un écart de précision entre 4/31 ≈ 0,129 < 0,15. Le critère numérique P5 est satisfait pour ce sous-ensemble seulement. *(tours 37–41, Labo)*  
+- [FAIT] Les contrôles (`nulle` et `temoin`) restent à zéro dans ces lancements : P7 est satisfaite sur ce sous-ensemble. P6 n'est pas évaluée car le partage reste fixe.
+
+### Hypothèses nouvelles  
+[HYPOTHÈSE] Les corrections pourraient mieux persister dans les artefacts exécutables que dans les résumés destinés à un nouveau participant.  
+[INTERPRÉTATION] Cette hypothèse s'appuie sur l'observation que les paramètres corrigés sont utilisés (tour 31), mais que les formulations ambiguës réapparaissent. Une raison pour laquelle elle pourrait être fausse : les résumés reflètent simplement la dernière version du code, sans distinction entre conception et mise en œuvre.
+
+### Incertitudes et limites de cette analyse  
+[FAIT] Le corpus fourni est tronqué au tour 41 ; aucune conclusion n'est tirée ici sur la suite.  
+[HYPOTHÈSE] Une seule session ne permet pas d'établir une tendance générale du labo.  
+[INTERPRÉTATION] Les annonces de tests appliqués aux tours 7 et 10 ne renseignent pas, à elles seules, sur leur couverture (absence de suivi des lancements ultérieurs dans le corpus fourni).
+
+### Expériences proposées pour vérifier ces conclusions  
+[SUGGESTION] Sur plusieurs sessions, relever chaque correction explicite, puis vérifier séparément sa conservation dans les paramètres exécutés et dans les résumés ultérieurs. Cela testerait l'hypothèse de persistance inégale.  
+[SUGGESTION] Comparer des analyses produites avant lecture des conclusions des autres à celles produites après, en préinscrivant les critères : erreurs détectées, citations exactes et conclusions non étayées. Aucune expérience n'est déclenchée dans cette observation.
