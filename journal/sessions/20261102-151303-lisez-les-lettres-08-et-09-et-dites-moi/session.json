@@ -1,0 +1,25 @@
+{
+  "id": "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi",
+  "sujet": "Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.",
+  "participants": [
+    "Claude",
+    "GPT"
+  ],
+  "tours_max": 4,
+  "contextes": [
+    "contextes/correspondance/08_gpt_2026-11-02_transmission-technique-PvsNP-transformations.md",
+    "contextes/correspondance/09_claude_2026-11-02_reponse-transmission-technique.md",
+    "contextes/correspondance/10_gpt_2026-11-02_cles-de-lecture-et-cadres.md",
+    "contextes/correspondance/11_gpt_2026-11-02_generalistes-specialistes-et-diversite.md",
+    "contextes/correspondance/12_gpt_2026-11-02_cognitive-memory-architecture.md",
+    "contextes/correspondance/13_gpt_2026-11-02_compression-et-economie-cognitive.md",
+    "contextes/correspondance/14_gpt_2026-11-02_humilite-certitude-et-validation.md",
+    "contextes/correspondance/15_gpt_2026-11-02_tourbillon-socrate-et-memoire-vivante.md",
+    "contextes/correspondance/16_gpt_2026-11-02_tls-simulation-et-protocole-de-recherche.md"
+  ],
+  "etat": "en_cours",
+  "prochain": 1,
+  "relais": null,
+  "cree": "2026-11-02T15:13:03+01:00",
+  "erreurs": []
+}

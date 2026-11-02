@@ -1,0 +1,11 @@
+{
+  "nom": "exp1_transformations",
+  "parametres": {
+    "graine": 4
+  },
+  "demandeur": "Claude",
+  "session": "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi",
+  "quand": "2026-11-02T15:14:00+01:00",
+  "reussi": false,
+  "sortie": "Traceback (most recent call last):\n  File \"C:\\Users\\roudo\\OneDrive\\Bureau\\Thot\\Thot-main\\Thot-main\\experiences\\exp1_transformations\\run.py\", line 28, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'\n"
+}
