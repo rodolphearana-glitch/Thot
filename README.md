@@ -26,7 +26,7 @@ Le dépôt est public : on ne brevette pas le soleil.
 2. Récupère le dépôt (bouton vert **Code → Download ZIP**, ou `git clone`).
 3. Double-clique sur **`lancer.bat`**. La première fois, il installe ce qu'il faut et crée `thot.config.toml`.
 4. Ouvre `thot.config.toml` avec le Bloc-notes et mets-y tes clés d'API et le nom du modèle GPT. Ce fichier ne part **jamais** sur GitHub.
-5. Relance `lancer.bat` : le labo s'ouvre dans ton navigateur sur http://127.0.0.1:8765.
+5. Relance `lancer.bat` : le labo s'ouvre dans ton navigateur sur http://127.0.0.1:8790.
 
 Sans clé d'API, tu peux déjà t'en servir : un participant en `provider = "manuel"` te donne le message à copier, tu colles la réponse, et tout est journalisé pareil.
 

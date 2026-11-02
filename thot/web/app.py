@@ -1,4 +1,4 @@
-"""Interface web locale du labo (http://127.0.0.1:8765).
+"""Interface web locale du labo (http://127.0.0.1:8790).
 
 Fichier protégé : il expose les actions sensibles (approbation des modifications).
 """
