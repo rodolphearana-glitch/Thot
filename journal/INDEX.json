@@ -1,6 +1,11 @@
 {
   "format": 1,
-  "observations": [],
+  "observations": [
+    {
+      "fichier": "20261102-165038-claude.md",
+      "titre": "Observation du 2026-11-02 16:50 par Claude"
+    }
+  ],
   "recadrages": 2,
   "sessions": [
     {

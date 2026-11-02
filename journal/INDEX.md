@@ -4,7 +4,7 @@ Généré automatiquement à partir des journaux (sans IA). Ne pas modifier à l
 
 - Format programme : [INDEX.json](INDEX.json)
 - Recadrages déclarés : [RECADRAGES.md](RECADRAGES.md) (2)
-- Rapports d'observation : [observations/INDEX.md](observations/INDEX.md) (0)
+- Rapports d'observation : [observations/INDEX.md](observations/INDEX.md) (1)
 - Modifications du labo : [auto-maj/](auto-maj/)
 
 | session | sujet | participants | état | tours (IA) | recadrages | expériences demandées / exécutées | dernier événement |
