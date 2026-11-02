@@ -23,8 +23,16 @@ header{display:flex;align-items:baseline;gap:14px;padding:14px 20px;border-botto
 header h1{margin:0;font-size:26px;letter-spacing:.06em}
 header h1 span{color:var(--ocre)}
 header .devise{color:var(--encre-2);font-style:italic}
-main{display:grid;grid-template-columns:290px 1fr 320px;gap:0;min-height:calc(100vh - 62px)}
-aside,section{padding:16px 18px;overflow:auto;max-height:calc(100vh - 62px)}
+main{display:grid;grid-template-columns:290px 1fr 320px;gap:0;height:calc(100vh - 62px)}
+aside{padding:16px 18px;overflow:auto;max-height:calc(100vh - 62px)}
+section#centre{display:flex;flex-direction:column;height:calc(100vh - 62px);min-width:0}
+#fil{flex:1;overflow:auto;padding:16px 22px}
+#saisie{border-top:1px solid var(--trait);background:var(--papyrus-2);padding:10px 22px 14px}
+#saisie .ligne{display:flex;gap:8px;align-items:flex-end}
+#saisie textarea{min-height:46px;max-height:220px;flex:1}
+#saisie .barre{margin:0 0 8px}
+#saisie .aide{font-size:12px;color:var(--encre-2);margin-top:4px}
+.accueil{padding:24px}
 aside.gauche{border-right:1px solid var(--trait);background:var(--papyrus-2)}
 aside.droite{border-left:1px solid var(--trait);background:var(--papyrus-2)}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--encre-2);margin:18px 0 8px}
@@ -90,7 +98,7 @@ button:disabled{opacity:.45;cursor:default}
 </aside>
 
 <section id="centre">
-  <p class="vide">Choisis ou ouvre une session.</p>
+  <p class="vide accueil">Choisis ou ouvre une session.</p>
 </section>
 
 <aside class="droite">
@@ -171,11 +179,15 @@ function vueSession(s){
      <p><button id="envoyer-relais">Ajouter la réponse</button></p></div>` : "";
   const erreurs = (s.erreurs||[]).slice(-2).map(e=>`<p class="erreur">${esc(e.participant)} : ${esc(e.erreur)}</p>`).join("");
   const nbIA = s.tours.filter(t=>t.type==="ia"||t.type==="relais").length;
+  const brouillon = $("#intervention") ? $("#intervention").value : "";
   $("#centre").innerHTML = `
+   <div id="fil">
     <h2>Session · <span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> · ${nbIA} / ${s.tours_max} tours d'IA</h2>
     <div class="tour humain"><div class="contenu">${rendu(s.sujet)}</div></div>
     ${s.tours.map(t=>`<div class="tour ${esc(t.type)}"><span class="qui">${esc(t.auteur)}</span><span class="quand">${esc(t.horodatage.slice(11,16))} · ${esc(t.type)}${t.tokens?" · "+t.tokens+" tokens":""}</span><div class="contenu">${rendu(t.texte)}</div></div>`).join("")}
     ${erreurs}${relais}
+   </div>
+   <div id="saisie">
     <div class="barre">
       <button id="avancer" ${s.etat!=="en_cours"?"disabled":""}>Tour suivant</button>
       <button class="second" id="auto" ${s.etat!=="en_cours"?"disabled":""}>${auto?"Arrêter l'enchaînement":"Enchaîner les tours"}</button>
@@ -184,18 +196,24 @@ function vueSession(s){
       ${s.etat==="terminee"?`<button class="second" id="plus">+2 tours</button>`:""}
       ${s.etat!=="terminee"?`<button class="danger" id="clore">Clore</button>`:""}
     </div>
-    <label>Ton intervention, Rodolphe<textarea id="intervention" placeholder="Une question, une objection, une nouvelle piste…"></textarea></label>
-    <p><button class="second" id="intervenir">Ajouter au fil</button></p>`;
+    <div class="ligne">
+      <textarea id="intervention" placeholder="Écris dans le fil… (Entrée pour envoyer, Maj+Entrée pour aller à la ligne)"></textarea>
+      <button id="intervenir">Envoyer</button>
+    </div>
+   </div>`;
+  $("#intervention").value = brouillon;
   const lier=(id,f)=>{const b=$("#"+id); if(b) b.onclick=f;};
   lier("avancer",()=>pas());
   lier("auto",()=>{auto=!auto; if(auto) boucle(); else vueSession(s);});
   lier("pause",()=>etat("pause")); lier("reprendre",()=>etat("en_cours")); lier("clore",()=>etat("terminee"));
   lier("plus",async()=>{vueSession(await api(`/api/sessions/${s.id}/tours`,{n:2}));chargerEtat();});
-  lier("intervenir",async()=>{const t=$("#intervention").value.trim(); if(!t) return; vueSession(await api(`/api/sessions/${s.id}/intervenir`,{texte:t}));});
+  const envoyer = async()=>{const t=$("#intervention").value.trim(); if(!t) return; $("#intervention").value=""; vueSession(await api(`/api/sessions/${s.id}/intervenir`,{texte:t}));};
+  lier("intervenir",envoyer);
+  $("#intervention").addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); envoyer(); } });
   lier("copier",()=>navigator.clipboard.writeText(s.relais.texte));
   lier("envoyer-relais",async()=>{const t=$("#reponse-relais").value.trim(); if(!t) return;
     try{vueSession(await api(`/api/sessions/${s.id}/relayer`,{texte:t}));}catch(e){alert(e.message)} chargerEtat();});
-  window.scrollTo(0,0);
+  const fil = $("#fil"); fil.scrollTop = fil.scrollHeight;
 }
 
 async function ouvrir(id){ courante=id; auto=false; vueSession(await api(`/api/sessions/${id}`)); chargerEtat(); }
