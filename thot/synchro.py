@@ -71,11 +71,7 @@ class Synchro:
         messages, erreur = [], ""
         with verrou_git:
             # 1. Verser ce que le labo a produit sur ce PC.
-            chemins = [c for c in ("journal", "experiences") if (self.racine / c).exists()]
-            if chemins:
-                self._git("add", "-A", "--", *chemins)
-            if self._git("diff", "--cached", "--quiet").returncode != 0:
-                self._git("commit", "-q", "-m", "journal : sessions et résultats du labo (PC de Rodolphe)")
+            if self._verser():
                 messages.append("journal versé")
             # 2. Ce qui est arrivé sur GitHub.
             f = self._git("fetch", "-q", "origin", branche)
@@ -83,6 +79,10 @@ class Synchro:
                 erreur = "GitHub injoignable : " + f.stderr.strip()[-200:]
             else:
                 distant = f"origin/{branche}"
+                if self._sans_lien(distant):
+                    self._relier(distant)
+                    self._verser()
+                    messages.append("dossier relié à GitHub")
                 nouveaux = self._git("rev-list", "--count", f"HEAD..{distant}").stdout.strip()
                 if nouveaux and nouveaux != "0":
                     touches = self._git("diff", "--name-only", f"HEAD...{distant}").stdout.split()
@@ -113,6 +113,33 @@ class Synchro:
         self.etat.update(derniere=maintenant(), erreur=erreur,
                          message=", ".join(messages) or "à jour", version=self.version())
         return self.etat
+
+    def _verser(self) -> bool:
+        chemins = [c for c in ("journal", "experiences") if (self.racine / c).exists()]
+        if chemins:
+            self._git("add", "-A", "--", *chemins)
+        if self._git("diff", "--cached", "--quiet").returncode == 0:
+            return False
+        self._git("commit", "-q", "-m", "journal : sessions et résultats du labo (PC de Rodolphe)")
+        return True
+
+    def _sans_lien(self, distant: str) -> bool:
+        """Vrai si l'historique local ne descend pas de GitHub (dossier venu d'un ZIP, liaison ratée)."""
+        if self._git("rev-parse", "--verify", "-q", "HEAD").returncode != 0:
+            return True
+        return self._git("merge-base", "HEAD", distant).returncode != 0
+
+    def _relier(self, distant: str) -> None:
+        """Rattache le dossier à GitHub sans rien perdre de ce que le labo a produit ici.
+
+        Les fichiers du dépôt reprennent la version de GitHub ; ce qui n'existe que sur le PC
+        (journal des sessions, résultats, .venv, configuration) reste en place et sera versé au
+        passage suivant."""
+        self._git("reset", "-q", distant)          # HEAD et index sur GitHub, fichiers intacts
+        self._git("checkout", "-q", "--", ".")     # fichiers suivis remis à la version de GitHub
+        branche = distant.split("/", 1)[1]
+        self._git("branch", "-q", "-M", branche)
+        self._git("branch", "-q", "-u", distant)
 
     def _tester(self, cible: str) -> tuple[bool, str]:
         """Lance les tests de la nouvelle version dans une copie à part, sans toucher au dossier du PC."""

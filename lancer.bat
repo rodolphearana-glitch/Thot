@@ -17,7 +17,7 @@ if not exist .git (
   echo Liaison de ce dossier avec GitHub...
   git init -q
   git remote add origin https://github.com/rodolphearana-glitch/Thot.git
-  git fetch -q origin main
+  git fetch origin main
   if errorlevel 1 goto installer
   git reset -q --hard origin/main
   git branch -q -M main

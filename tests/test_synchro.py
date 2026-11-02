@@ -65,3 +65,29 @@ def test_sans_github(depot):
     git(depot, "remote", "remove", "origin") if "origin" in git(depot, "remote") else None
     etat = Synchro(depot, {"active": True}).passage()
     assert "origin" in etat["erreur"]
+
+
+def test_dossier_venu_d_un_zip(depot, tmp_path):
+    """Un dossier sans historique commun avec GitHub (ZIP, liaison ratée) se relie seul."""
+    distant, autre = preparer(depot, tmp_path)
+    (autre / "contextes" / "nouvelle.md").write_text("de GitHub\n")
+    git(autre, "add", "-A"); git(autre, "commit", "-q", "-m", "nouvelle"); git(autre, "push", "-q")
+    zip_ = tmp_path / "zip"
+    subprocess.run(["git", "clone", "-q", str(distant), str(zip_)], check=True)
+    import shutil
+    shutil.rmtree(zip_ / ".git")
+    (zip_ / "contextes" / "nouvelle.md").unlink()          # ZIP un peu plus ancien
+    (zip_ / "journal" / "sessions" / "s1").mkdir(parents=True)
+    (zip_ / "journal" / "sessions" / "s1" / "session.md").write_text("session locale\n")
+    git(zip_, "init", "-q", "-b", "main")
+    git(zip_, "config", "user.email", "pc@example.com"); git(zip_, "config", "user.name", "PC")
+    git(zip_, "remote", "add", "origin", str(distant))
+    # Ce qui s'est passé chez Rodolphe : un premier commit local sans lien avec GitHub.
+    git(zip_, "add", "-A", "--", "journal"); git(zip_, "commit", "-q", "-m", "journal")
+    etat = Synchro(zip_, {"active": True}).passage()
+    assert etat["erreur"] == "", etat
+    assert "relié" in etat["message"]
+    assert (zip_ / "contextes" / "nouvelle.md").read_text() == "de GitHub\n"
+    assert (zip_ / "journal" / "sessions" / "s1" / "session.md").exists()
+    git(autre, "pull", "-q")
+    assert (autre / "journal" / "sessions" / "s1" / "session.md").exists()
