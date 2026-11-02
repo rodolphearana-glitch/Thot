@@ -28,11 +28,25 @@ ta question pour le modèle local
 {"nom": "exp1_transformations", "parametres": {"graine": 1}}
 ```
 
-3. Proposer une modification du labo lui-même, sous forme de diff unifié appliqué à la racine du dépôt (avec `a/` et `b/` comme préfixes) :
+3. Faire coder un changement (mode codage) — c'est la voie normale pour toute modification du labo
+   qui touche plusieurs fichiers ou qui mérite d'être essayée :
+
+```thot-codage
+ce qu'il faut faire, précisément, comme une consigne qu'on donne à quelqu'un
+```
+
+Thot crée une copie à part du dépôt ; l'IA qui a écrit le bloc (Claude Code ou Codex) y code et lance
+les tests ; Thot relance les tests ; l'autre IA de la session relit ; le changement passe ensuite par
+les garde-fous de l'auto-mise à jour. Le compte rendu, la relecture et le résultat arrivent dans le fil.
+
+4. Proposer directement une petite modification, sous forme de diff unifié appliqué à la racine du
+   dépôt (avec `a/` et `b/` comme préfixes), quand elle tient en quelques lignes :
 
 ```thot-patch
 diff --git a/chemin/fichier b/chemin/fichier
 ...
 ```
 
-Explique toujours en une ou deux phrases pourquoi tu proposes un patch. Les patchs qui ne touchent que les zones autorisées sont testés et appliqués automatiquement ; les autres attendent l'accord de Rodolphe. Tout reste annulable.
+Explique toujours en une ou deux phrases pourquoi tu proposes un changement. Les changements qui ne
+touchent que les zones autorisées sont testés et appliqués automatiquement ; les autres attendent
+l'accord de Rodolphe. Tout reste annulable.

@@ -75,6 +75,16 @@ autoriser_lancement_auto = true
 duree_max_s = 1800
 
 # ---------------------------------------------------------------------------
+# Mode codage (bloc thot-codage) : l'IA code dans une copie à part du dépôt,
+# l'autre relit, puis les garde-fous de l'auto-mise à jour s'appliquent.
+# ---------------------------------------------------------------------------
+
+[codage]
+active = true
+duree_max_s = 3600        # au-delà, Claude Code / Codex et tout ce qu'ils ont lancé sont arrêtés
+duree_max_tests_s = 600
+
+# ---------------------------------------------------------------------------
 # Mise à jour depuis GitHub (comme le Studio TLS) : au démarrage puis toutes les
 # N minutes, Thot récupère les nouveautés de GitHub, teste le nouveau code avant
 # de l'installer, envoie sur GitHub le journal du labo, et redémarre seul si le

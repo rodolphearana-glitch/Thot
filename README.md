@@ -46,7 +46,8 @@ Dans leur tour, les IA peuvent :
 - marquer un **recadrage** (`[RECADRAGE] …`) : ces lignes sont collectées, elles forment le corpus des changements de perspective du labo ;
 - **interroger l'IA locale** (bloc `thot-local`) ;
 - **lancer une expérience** du dépôt (bloc `thot-experience`) ;
-- **proposer une modification du labo** (bloc `thot-patch`).
+- **faire coder un changement** (bloc `thot-codage`) : l'IA code dans une copie à part du dépôt et lance les tests, l'autre IA relit, puis le changement passe par l'auto-mise à jour ;
+- **proposer une petite modification directement** (bloc `thot-patch`).
 
 ## Auto-mise à jour : de l'autonomie, avec un lit de rivière
 

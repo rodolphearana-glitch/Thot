@@ -127,32 +127,67 @@ def trouver_claude() -> str | None:
     return None
 
 
-def _executer(commande: list[str], entree: str, racine: Path, env=None) -> subprocess.CompletedProcess:
+def _tuer(proc: subprocess.Popen) -> None:
+    """Coupe un processus et tout ce qu'il a lancé (sous Windows, l'arbre entier : Claude Code lance bash,
+    les tests… ; leçon du Studio TLS)."""
     try:
-        return subprocess.run(commande, input=entree, capture_output=True, text=True, encoding="utf-8",
-                              errors="replace", cwd=racine, env=env, timeout=DELAI_CLI_S,
-                              creationflags=NO_WINDOW)
-    except subprocess.TimeoutExpired as e:
-        raise ErreurProvider(f"Pas de réponse après {DELAI_CLI_S} s.") from e
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/PID", str(proc.pid), "/T", "/F"], capture_output=True,
+                           creationflags=NO_WINDOW)
+        else:
+            os.killpg(proc.pid, 9)
+    except (OSError, ProcessLookupError):
+        pass
+    try:
+        proc.kill()
+    except OSError:
+        pass
+
+
+def env_enfant(**ajouts) -> dict:
+    """Environnement des programmes lancés : UTF-8 forcé (sous Windows, Python lit et écrit en cp1252
+    sinon ; leçon du Studio TLS), jamais de clé d'API qui traînerait."""
+    env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
+    env["PYTHONUTF8"] = "1"
+    env.update(ajouts)
+    return env
+
+
+def _executer(commande: list[str], entree: str, dossier: Path, env=None,
+              delai: int = DELAI_CLI_S) -> subprocess.CompletedProcess:
+    try:
+        proc = subprocess.Popen(commande, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                text=True, encoding="utf-8", errors="replace", cwd=dossier,
+                                env=env or env_enfant(), creationflags=NO_WINDOW,
+                                start_new_session=(os.name != "nt"))
     except OSError as e:
         raise ErreurProvider(str(e)[:300]) from e
+    try:
+        sortie, erreur = proc.communicate(entree, timeout=delai)
+    except subprocess.TimeoutExpired as e:
+        _tuer(proc)
+        proc.communicate()
+        raise ErreurProvider(f"Pas de réponse après {delai} s (processus arrêté).") from e
+    return subprocess.CompletedProcess(commande, proc.returncode, sortie, erreur)
 
 
-def _claude_code(p: Participant, systeme: str, prompt: str, racine: Path) -> Reponse:
+def _claude_code(p: Participant, systeme: str, prompt: str, racine: Path,
+                 dossier: Path | None = None, ecriture: bool = False, delai: int = DELAI_CLI_S) -> Reponse:
     """Claude Code du PC, connecté au compte Claude (abonnement) : aucune clé d'API.
 
-    Lecture seule : il peut lire le dépôt (contextes, expériences) mais ne modifie rien ; les modifications
-    passent par les blocs thot-patch et l'auto-mise à jour."""
+    Lecture seule par défaut : il peut lire le dépôt mais ne modifie rien. En mode codage (`ecriture`),
+    il travaille dans une copie à part du dépôt (`dossier`), jamais dans le dossier de Rodolphe."""
     exe = trouver_claude()
     if not exe:
         raise ErreurProvider("Claude Code introuvable sur ce PC (le même que celui du Studio TLS).")
-    commande = [exe, "-p", "--output-format", "json", "--allowedTools", "Read,Glob,Grep",
+    outils = "Read,Edit,Write,Glob,Grep,Bash" if ecriture else "Read,Glob,Grep"
+    commande = [exe, "-p", "--output-format", "json", "--allowedTools", outils,
                 "--append-system-prompt", systeme]
+    if ecriture:
+        commande += ["--permission-mode", "acceptEdits"]
     if p.modele:
         commande += ["--model", p.modele]
-    # La connexion du compte, jamais une clé d'API qui traînerait dans l'environnement.
-    env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
-    fait = _executer(commande, prompt, racine, env)
+    fait = _executer(commande, prompt, dossier or racine, env_enfant(), delai)
     try:
         res = json.loads(fait.stdout or "{}")
     except ValueError:
@@ -169,22 +204,25 @@ def _claude_code(p: Participant, systeme: str, prompt: str, racine: Path) -> Rep
     return Reponse(texte, int(u.get("input_tokens", 0) or 0) + int(u.get("output_tokens", 0) or 0))
 
 
-def _codex(p: Participant, systeme: str, prompt: str, racine: Path) -> Reponse:
-    """Codex du PC, connecté au compte ChatGPT : aucune clé d'API. Bac à sable en lecture seule."""
+def _codex(p: Participant, systeme: str, prompt: str, racine: Path,
+           dossier: Path | None = None, ecriture: bool = False, delai: int = DELAI_CLI_S) -> Reponse:
+    """Codex du PC, connecté au compte ChatGPT : aucune clé d'API. Bac à sable en lecture seule, ou en
+    écriture limitée à la copie à part (`dossier`) en mode codage."""
     exe = shutil.which("codex")
     if not exe:
         raise ErreurProvider("Codex introuvable sur ce PC (commande « codex » absente, la même que pour le Studio TLS).")
-    dossier = racine / ".thot"
-    dossier.mkdir(exist_ok=True)
-    sortie = dossier / f"codex-{os.getpid()}-{threading.get_ident()}.txt"
+    etat = racine / ".thot"
+    etat.mkdir(exist_ok=True)
+    sortie = etat / f"codex-{os.getpid()}-{threading.get_ident()}.txt"
     if sortie.exists():
         sortie.unlink()
-    commande = [exe, "exec", "--skip-git-repo-check", "-C", str(racine), "--sandbox", "read-only",
-                "-o", str(sortie)]
+    travail = dossier or racine
+    commande = [exe, "exec", "--skip-git-repo-check", "-C", str(travail), "--sandbox",
+                "workspace-write" if ecriture else "read-only", "-o", str(sortie)]
     if p.modele:
         commande += ["-m", p.modele]
     commande.append("-")
-    fait = _executer(commande, f"{systeme}\n\n---\n\n{prompt}", racine)
+    fait = _executer(commande, f"{systeme}\n\n---\n\n{prompt}", travail, env_enfant(), delai)
     texte = sortie.read_text(encoding="utf-8", errors="replace").strip() if sortie.exists() else ""
     if sortie.exists():
         sortie.unlink()
@@ -194,6 +232,15 @@ def _codex(p: Participant, systeme: str, prompt: str, racine: Path) -> Reponse:
     if fait.returncode != 0 or not texte:
         raise ErreurProvider("Codex : " + ((fait.stderr or fait.stdout).strip()[-300:] or f"code {fait.returncode}"))
     return Reponse(texte, 0)
+
+
+def coder(config: Config, p: Participant, systeme: str, prompt: str, dossier: Path, delai: int) -> Reponse:
+    """Mode codage : l'IA modifie les fichiers de `dossier` (une copie à part du dépôt)."""
+    if p.provider == "claude":
+        return _claude_code(p, systeme, prompt, config.racine, dossier, True, delai)
+    if p.provider == "codex":
+        return _codex(p, systeme, prompt, config.racine, dossier, True, delai)
+    raise ErreurProvider(f"Le codage demande Claude Code ou Codex ({p.nom} est « {p.provider} »).")
 
 
 def _lmstudio(p: Participant, systeme: str, prompt: str) -> Reponse:

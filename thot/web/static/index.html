@@ -61,6 +61,8 @@ button:disabled{opacity:.45;cursor:default}
 .tour.humain{border-left:4px solid var(--ocre)}
 .tour.ia,.tour.relais{border-left:4px solid var(--lapis)}
 .tour.local{border-left:4px solid var(--vert)}
+.tour.codage{border-left:4px solid var(--ocre)}
+.tour.relecture{border-left:4px dashed var(--lapis)}
 .tour.labo{border-left:4px solid var(--encre-2);font-size:14px}
 .recadrage{background:color-mix(in srgb,var(--ocre) 14%,transparent);padding:2px 6px;border-radius:4px}
 .contenu pre{background:var(--papyrus-2);padding:8px;border-radius:6px;overflow:auto;font-size:13px}
@@ -256,8 +258,8 @@ function vueSession(s){
       <button class="second" id="auto" ${s.etat!=="en_cours"?"disabled":""}>${auto?"Arrêter l'enchaînement":"Enchaîner les tours"}</button>
       ${s.etat==="en_cours"?`<button class="second" id="pause">Pause</button>`:""}
       ${s.etat==="pause"?`<button class="second" id="reprendre">Reprendre</button>`:""}
-      ${s.etat==="terminee"?`<button class="second" id="plus">+2 tours</button>`:""}
-      ${s.etat!=="terminee"?`<button class="danger" id="clore">Clore</button>`:""}
+      ${s.etat==="terminee"?`<button class="second" id="plus">Rouvrir (+2 tours)</button>`:""}
+      ${s.etat!=="terminee"?`<button class="danger" id="clore">Fermer la session</button>`:""}
     </div>
     <div class="ligne">
       <textarea id="intervention" placeholder="Écris dans le fil… (Entrée pour envoyer, Maj+Entrée pour aller à la ligne)"></textarea>
@@ -268,7 +270,7 @@ function vueSession(s){
   const lier=(id,f)=>{const b=$("#"+id); if(b) b.onclick=f;};
   lier("avancer",()=>pas());
   lier("auto",()=>{auto=!auto; if(auto) boucle(); else vueSession(s);});
-  lier("pause",()=>etat("pause")); lier("reprendre",()=>etat("en_cours")); lier("clore",()=>etat("terminee"));
+  lier("pause",()=>etat("pause")); lier("reprendre",()=>etat("en_cours")); lier("clore",()=>{ if(confirm("Fermer cette session ? Elle passera dans « Terminées » et pourra être rouverte.")) etat("terminee"); });
   lier("plus",async()=>{vueSession(await api(`/api/sessions/${s.id}/tours`,{n:2}));chargerEtat();});
   const envoyer = async()=>{const t=$("#intervention").value.trim(); if(!t) return; $("#intervention").value=""; vueSession(await api(`/api/sessions/${s.id}/intervenir`,{texte:t}));};
   lier("intervenir",envoyer);

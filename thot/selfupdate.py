@@ -14,6 +14,7 @@ Principe (validé par Rodolphe le 2026-11-02) :
 from __future__ import annotations
 
 import fnmatch
+import os
 import json
 import re
 import shutil
@@ -31,6 +32,7 @@ _verrou = threading.Lock()
 PROTEGES = [
     "thot/selfupdate.py",
     "thot/synchro.py",
+    "thot/codage.py",
     "thot/__main__.py",
     "thot/budget.py",
     "thot/config.py",
@@ -266,6 +268,7 @@ class AutoMaj:
             r = subprocess.run(
                 [sys.executable, "-m", "pytest", "-q", "-x"], cwd=wt, capture_output=True,
                 text=True, timeout=duree, encoding="utf-8", errors="replace",
+                env={**os.environ, "PYTHONUTF8": "1"},
             )
         except subprocess.TimeoutExpired:
             return False, f"Tests interrompus après {duree} s."

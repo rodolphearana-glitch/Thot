@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import providers
 from .budget import Budget, BudgetDepasse
+from .codage import Codage
 from .config import Config
 from .journal import Journal, maintenant
 from .selfupdate import AutoMaj, extraire_blocs
@@ -25,6 +26,7 @@ class Labo:
         self.journal = Journal(self.racine)
         self.budget = Budget(config.budget, self.racine / ".thot")
         self.automaj = AutoMaj(self.racine, config.auto_maj)
+        self.codage = Codage(config, self.automaj)
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self._verrou_actifs = threading.Lock()
@@ -206,6 +208,8 @@ class Labo:
             self._repondre_local(ident, auteur, question)
         for bloc in extraire_blocs(texte, "thot-experience"):
             self._lancer_experience(ident, auteur, bloc)
+        for consigne in extraire_blocs(texte, "thot-codage"):
+            self._lancer_codage(s, auteur, consigne)
         for patch in extraire_blocs(texte, "thot-patch"):
             avant = texte.split("```thot-patch", 1)[0].strip().split("\n\n")[-1]
             rec = self.automaj.proposer(patch, auteur, avant, ident)
@@ -225,6 +229,67 @@ class Labo:
             if rec["statut"] == "rejete_tests" and rec.get("tests"):
                 msg += "\n\nSortie des tests (fin) :\n\n```\n" + rec["tests"][-1500:] + "\n```"
             self.journal.ajouter_tour(ident, "Labo", msg, "labo", automaj=rec["id"])
+
+    def _lancer_codage(self, s: dict, auteur: str, consigne: str) -> None:
+        ident = s["id"]
+        if not self.config.codage.get("active", True):
+            self.journal.ajouter_tour(ident, "Labo", f"{auteur} demande un codage, mais le mode codage est "
+                                      "désactivé dans thot.config.toml.", "labo")
+            return
+        try:
+            p = self.config.participant(auteur)
+        except KeyError:
+            self.journal.ajouter_tour(ident, "Labo", f"Codage impossible : participant inconnu ({auteur}).", "labo")
+            return
+        if p.provider not in ("claude", "codex"):
+            self.journal.ajouter_tour(ident, "Labo", f"Codage impossible : {auteur} n'est ni Claude Code ni "
+                                      "Codex.", "labo")
+            return
+        relecteur = None
+        for nom in s["participants"]:
+            if nom != auteur:
+                autre = self.config.participant(nom)
+                if autre.provider in ("claude", "codex"):
+                    relecteur = autre
+                    break
+        self.journal.ajouter_tour(
+            ident, "Labo", f"Codage lancé pour {auteur} dans une copie à part du dépôt"
+            + (f", relecture par {relecteur.nom}" if relecteur else ", sans relecteur") + ". "
+            "Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.", "labo")
+        self._debut()
+        threading.Thread(target=self._executer_codage, args=(ident, s["sujet"], p, consigne, relecteur),
+                         daemon=True).start()
+
+    def _executer_codage(self, ident, sujet, p, consigne, relecteur) -> None:
+        try:
+            cr = self.codage.lancer(p, consigne, relecteur, ident, contexte=f"Sujet de la session : {sujet}")
+            lignes = [f"**Codage de {p.nom}** (`{cr['id']}`)"]
+            if cr["erreur"]:
+                lignes.append(f"Problème : {cr['erreur']}")
+            if cr["resume"]:
+                lignes += ["", "Compte rendu :", "", cr["resume"]]
+            if cr["tests_ok"] is not None:
+                lignes += ["", f"Tests relancés par Thot dans la copie : **{'réussis' if cr['tests_ok'] else 'en échec'}**",
+                           "", "```", cr["tests"][-1200:], "```"]
+            self.journal.ajouter_tour(ident, p.nom, "\n".join(lignes), "codage", codage=cr["id"])
+            if cr["relecture"]:
+                self.journal.ajouter_tour(ident, relecteur.nom, "**Relecture**\n\n" + cr["relecture"],
+                                          "relecture", codage=cr["id"])
+            rec = cr["automaj"]
+            if rec:
+                etat = {"applique": "testé et appliqué automatiquement",
+                        "en_attente": "en attente de l'accord de Rodolphe (colonne de droite)",
+                        "rejete_tests": "rejeté : les tests ne passent pas",
+                        "invalide": "rejeté : le patch ne s'applique pas",
+                        "interdit": "refusé : zone interdite", "echec": "échec technique"}.get(rec["statut"], rec["statut"])
+                self.journal.ajouter_tour(
+                    ident, "Labo", f"Changement `{rec['id']}` issu du codage : **{etat}**.\n\nFichiers : "
+                    f"{', '.join(rec['fichiers'])}\n\nRaisons : {'; '.join(rec.get('raisons', [])) or 'aucune réserve'}",
+                    "labo", automaj=rec["id"])
+        except Exception as e:  # un codage raté ne doit pas faire tomber le labo
+            self.journal.ajouter_tour(ident, "Labo", f"Le codage s'est arrêté sur une erreur : {e}", "labo")
+        finally:
+            self._fin()
 
     def _repondre_local(self, ident: str, demandeur: str, question: str) -> None:
         locaux = [p for p in self.config.participants if p.provider in ("lmstudio", "ollama")]
@@ -281,7 +346,7 @@ class Labo:
         try:
             r = subprocess.run([sys.executable, str(script), "--params", json.dumps(params)],
                                cwd=self.racine, capture_output=True, text=True, timeout=duree,
-                               encoding="utf-8", errors="replace")
+                               encoding="utf-8", errors="replace", env=providers.env_enfant())
             sortie = (r.stdout + r.stderr)[-6000:]
             ok = r.returncode == 0
         except subprocess.TimeoutExpired:

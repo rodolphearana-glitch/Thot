@@ -37,7 +37,10 @@ class Journal:
     # -- sessions -----------------------------------------------------------
     def creer(self, sujet: str, participants: list[str], tours_max: int,
               contextes: list[str]) -> dict:
-        ident = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + _slug(sujet)
+        base = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + _slug(sujet)
+        ident, n = base, 2
+        while (self.dossier / ident).exists():
+            ident, n = f"{base}-{n}", n + 1
         d = self.dossier / ident
         d.mkdir(parents=True)
         session = {

@@ -13,6 +13,7 @@ Comme le Studio TLS (« tout passe par GitHub », Rodolphe, 2 novembre 2026) :
 """
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -174,6 +175,7 @@ class Synchro:
         try:
             t = subprocess.run([sys.executable, "-m", "pytest", "-q", "-x"], cwd=copie, capture_output=True,
                                text=True, encoding="utf-8", errors="replace",
+                               env={**os.environ, "PYTHONUTF8": "1"},
                                timeout=int(self.config.get("duree_max_tests_s", 300)))
             return t.returncode == 0, t.stdout + t.stderr
         except subprocess.TimeoutExpired:
