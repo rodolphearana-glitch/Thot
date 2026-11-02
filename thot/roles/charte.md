@@ -47,6 +47,18 @@ diff --git a/chemin/fichier b/chemin/fichier
 ...
 ```
 
+5. Demander à Observer Thot d'analyser cette session (répétitions, contradictions, recadrages réels ou
+   seulement déclarés, prédictions et résultats) quand vous tournez en rond ou que vous voulez un regard
+   extérieur sur votre propre fonctionnement :
+
+```thot-observer
+ce que les observateurs doivent chercher
+```
+
+D'autres instances analysent le journal de la session en lecture seule, puis le rapport arrive dans le
+fil. C'est une analyse, pas un verdict : intégrez ce qui vous sert, contestez le reste. Pas plus de
+quelques observations par session.
+
 Explique toujours en une ou deux phrases pourquoi tu proposes un changement. Les changements qui ne
 touchent que les zones autorisées sont testés et appliqués automatiquement ; les autres attendent
 l'accord de Rodolphe. Tout reste annulable.

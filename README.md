@@ -46,6 +46,7 @@ Dans leur tour, les IA peuvent :
 - marquer un **recadrage** (`[RECADRAGE] …`) : ces lignes sont collectées, elles forment le corpus des changements de perspective du labo ;
 - **interroger l'IA locale** (bloc `thot-local`) ;
 - **lancer une expérience** du dépôt (bloc `thot-experience`) ;
+- **demander une observation de leur propre session** (bloc `thot-observer`) : d'autres instances analysent le journal et le rapport revient dans le fil ;
 - **faire coder un changement** (bloc `thot-codage`) : l'IA code dans une copie à part du dépôt et lance les tests, l'autre IA relit, puis le changement passe par l'auto-mise à jour ;
 - **proposer une petite modification directement** (bloc `thot-patch`).
 
@@ -66,7 +67,7 @@ Tout ce que fait le labo est lisible directement sur GitHub, sans accès au PC d
 - [`journal/INDEX.md`](journal/INDEX.md) — toutes les sessions : sujet, participants, état, tours, recadrages, expériences demandées / exécutées, avec un lien vers chaque fil.
 - [`journal/INDEX.json`](journal/INDEX.json) — le même index pour un programme (format stable, `"format": 1`).
 - [`journal/RECADRAGES.md`](journal/RECADRAGES.md) — toutes les lignes `[RECADRAGE]`, mot pour mot, avec leur auteur, leur session, leur tour et un lien vers le contexte. Ce sont des recadrages **déclarés**.
-- [`journal/observations/INDEX.md`](journal/observations/INDEX.md) — les rapports d'auto-observation : une IA analyse des sessions passées, en lecture seule (menu « Observer Thot »). Ce sont des analyses, jamais des vérités établies.
+- [`journal/observations/INDEX.md`](journal/observations/INDEX.md) — les rapports d'auto-observation. Une observation est une session à part entière (genre `observation` dans l'index) : plusieurs IA discutent, en lecture seule, de sessions passées ; à la clôture, la discussion devient un rapport daté, jamais réécrit. On la lance depuis le menu « Observer Thot », ou une session la demande elle-même (bloc `thot-observer`) et reçoit le rapport dans son fil. Ce sont des analyses, jamais des vérités établies.
 - [`journal/auto-maj/`](journal/auto-maj/) — chaque modification du labo, avec sa raison, ses tests et son statut.
 
 Les index sont refaits sans IA à chaque synchronisation, de façon déterministe. Tout ce qui est publié passe par un filtre qui retire chemins personnels, clés et adresses électroniques (`thot/confidentialite.py`).

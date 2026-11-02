@@ -23,6 +23,8 @@ class NouvelleSession(BaseModel):
     participants: list[str]
     tours_max: int = 6
     contextes: list[str] = []
+    genre: str = "discussion"
+    sources: list[str] = []
 
 
 class Texte(BaseModel):
@@ -35,11 +37,6 @@ class Etat(BaseModel):
 
 class Contextes(BaseModel):
     contextes: list[str]
-
-
-class Observation(BaseModel):
-    participant: str
-    sessions: list[str] = []
 
 
 class Nombre(BaseModel):
@@ -76,8 +73,6 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
             "budget": labo.budget.etat(),
             "synchro": labo.synchro.etat if labo.synchro else None,
             "observations": labo.observatoire.liste_observations(),
-            "observation_en_cours": labo.observation_en_cours,
-            "derniere_observation": getattr(labo, "derniere_observation", None),
             "sessions": labo.journal.lister(),
             "automaj": [{k: r.get(k) for k in ("id", "auteur", "statut", "fichiers", "raisons",
                                                 "justification", "propose", "commit",
@@ -90,10 +85,6 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
         if not labo.synchro:
             raise HTTPException(409, "Synchronisation indisponible.")
         return labo.synchro.passage()
-
-    @app.post("/api/observer")
-    def observer(o: Observation):
-        return _protege(labo.observer, o.participant, o.sessions)
 
     @app.get("/api/observations/{fichier}")
     def observation(fichier: str):
@@ -110,7 +101,7 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
 
     @app.post("/api/sessions")
     def creer(n: NouvelleSession):
-        return _protege(labo.creer, n.sujet, n.participants, n.tours_max, n.contextes)
+        return _protege(labo.creer, n.sujet, n.participants, n.tours_max, n.contextes, n.genre, n.sources)
 
     @app.get("/api/sessions/{ident}")
     def lire(ident: str):

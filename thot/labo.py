@@ -30,7 +30,6 @@ class Labo:
         self.automaj = AutoMaj(self.racine, config.auto_maj)
         self.codage = Codage(config, self.automaj)
         self.observatoire = Observatoire(self.racine)
-        self.observation_en_cours: dict | None = None
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self._verrou_actifs = threading.Lock()
@@ -80,6 +79,10 @@ class Labo:
             f"### Tour {t['n']} — {t['auteur']} ({t['type']})\n\n{t['texte']}"
             for t in session["tours"]
         ]
+        if session.get("genre") == "observation":
+            par_source = max(6000, (maxc // 2) // max(1, len(session.get("sources", []))))
+            exports = "\n\n".join(self.observatoire.export_session(x, par_source) for x in session.get("sources", []))
+            morceaux_ctx.insert(0, "### Sessions observées (journaux, en lecture seule)\n\n" + exports)
         entete = f"# Sujet de la session\n\n{session['sujet']}\n"
         fin = f"\n\n---\n\nC'est ton tour, {nom}."
         ctx = "\n\n".join(morceaux_ctx)
@@ -98,12 +101,47 @@ class Labo:
 
     # -- sessions ----------------------------------------------------------------
     def creer(self, sujet: str, participants: list[str], tours_max: int,
-              contextes: list[str]) -> dict:
+              contextes: list[str], genre: str = "discussion", sources: list[str] | None = None) -> dict:
+        if not participants:
+            raise ValueError("Il faut au moins un participant.")
         for p in participants:
             self.config.participant(p)  # lève si inconnu
         dispo = set(self.contextes_disponibles())
         contextes = [c for c in contextes if c in dispo]
-        return self.journal.creer(sujet, participants, max(1, int(tours_max)), contextes)
+        if genre not in ("discussion", "observation"):
+            raise ValueError("Genre de session inconnu.")
+        if genre == "observation":
+            # Une observation ne porte que sur des discussions : jamais sur une autre observation
+            # (pas d'auto-analyse récursive).
+            discussions = {r["id"] for r in self.journal.lister() if r["genre"] == "discussion"}
+            sources = [x for x in (sources or []) if x in discussions] or sorted(discussions)
+            if not sources:
+                raise ValueError("Aucune discussion à observer.")
+        else:
+            sources = []
+        return self.journal.creer(sujet, participants, max(1, int(tours_max)), contextes, genre, sources)
+
+    def _terminer(self, s: dict) -> None:
+        """Clôt une session ; une observation publie alors son rapport (un nouveau à chaque clôture)."""
+        s["etat"] = "terminee"
+        s["relais"] = None
+        if s.get("genre") == "observation":
+            tours = [t for t in self.journal.tours(s["id"]) if t.get("type") in ("ia", "relais", "humain")]
+            if tours:
+                corps = "\n\n".join(f"### Tour {t['n']} — {t['auteur']}\n\n{t['texte']}" for t in tours)
+                modeles = ", ".join(sorted({f"{p.nom} : {p.provider}" + (f" {p.modele}" if p.modele else "")
+                                            for p in self.config.participants if p.nom in s["participants"]}))
+                chemin = self.observatoire.ecrire_observation(
+                    " et ".join(s["participants"]), modeles, s.get("sources", []), CONSIGNE_OBSERVATION,
+                    f"Discussion d'observation `{s['id']}` ({len(tours)} tours). Question : {s['sujet']}\n\n{corps}")
+                s.setdefault("rapports", []).append(chemin.name)
+                self.journal.sauver(s)
+                self.journal.ajouter_tour(s["id"], "Labo", f"Rapport publié : `journal/observations/{chemin.name}` "
+                                          "(un nouveau rapport s'ajoute à chaque clôture, aucun n'est réécrit).",
+                                          "labo", evenement={"genre": "rapport_publie", "fichier": chemin.name})
+                self.observatoire.generer_index()
+                return
+        self.journal.sauver(s)
 
     def avancer(self, ident: str) -> dict:
         self._debut()
@@ -119,13 +157,17 @@ class Labo:
                 return s
             nb_ia = sum(1 for t in s["tours"] if t["type"] in ("ia", "relais"))
             if nb_ia >= s["tours_max"]:
-                s["etat"] = "terminee"
-                self.journal.sauver(s)
-                return s
+                self._terminer(s)
+                return self.journal.lire(ident)
             nom = s["participants"][s["prochain"] % len(s["participants"])]
             p = self.config.participant(nom)
             prompt = self.construire_prompt(s, nom)
             systeme = self.charte()
+            if s.get("genre") == "observation":
+                systeme += "\n\n# Cette session est une OBSERVATION\n\n" + CONSIGNE_OBSERVATION + (
+                    "\nVous êtes plusieurs analystes : répondez-vous, contestez les observations des autres "
+                    "quand elles ne tiennent pas, et ne répétez pas ce qui a déjà été dit. À la clôture, "
+                    "toute la discussion devient un rapport dans journal/observations/.")
             try:
                 self.budget.verifier(p.provider)
                 rep = providers.appeler(self.config, p, systeme, prompt)
@@ -173,9 +215,11 @@ class Labo:
             s = self.journal.lire(ident)
             if s["etat"] == "attente_relais" and etat == "en_cours":
                 return s
-            s["etat"] = etat
             if etat == "terminee":
-                s["relais"] = None
+                if s["etat"] != "terminee":
+                    self._terminer(s)
+                return self.journal.lire(ident)
+            s["etat"] = etat
             self.journal.sauver(s)
             return self.journal.lire(ident)
 
@@ -200,6 +244,7 @@ class Labo:
         with self._verrou(ident):
             s = self.journal.lire(ident)
             s["tours_max"] += max(1, int(n))
+            s["relances"] = s.get("relances", 0) + 1
             if s["etat"] == "terminee":
                 s["etat"] = "en_cours"
             self.journal.sauver(s)
@@ -212,6 +257,9 @@ class Labo:
             self._repondre_local(ident, auteur, question)
         for bloc in extraire_blocs(texte, "thot-experience"):
             self._lancer_experience(ident, auteur, bloc)
+        if s.get("genre", "discussion") == "discussion":   # une observation ne peut pas en demander une autre
+            for question in extraire_blocs(texte, "thot-observer"):
+                self._demander_observation(s, auteur, question)
         for consigne in extraire_blocs(texte, "thot-codage"):
             self._lancer_codage(s, auteur, consigne)
         for patch in extraire_blocs(texte, "thot-patch"):
@@ -298,38 +346,69 @@ class Labo:
         finally:
             self._fin()
 
-    # -- auto-observation ---------------------------------------------------------------
-    def observer(self, participant: str, sessions: list[str]) -> dict:
-        """Lance UNE analyse de sessions passées, en arrière-plan. Jamais automatique, jamais récursive :
-        une seule observation à la fois, comptée dans le budget, sur des journaux lus sans modification."""
-        if self.observation_en_cours:
-            raise RuntimeError("Une observation est déjà en cours.")
-        p = self.config.participant(participant)
-        connues = {r["id"] for r in self.observatoire.resumes()}
-        sessions = [s for s in sessions if s in connues] or sorted(connues)
-        if not sessions:
-            raise ValueError("Aucune session à observer.")
-        self.budget.verifier(p.provider)
-        self.observation_en_cours = {"participant": participant, "sessions": sessions, "debut": maintenant()}
-        self._debut()
-        threading.Thread(target=self._executer_observation, args=(p, sessions), daemon=True).start()
-        return dict(self.observation_en_cours)
+    # -- observation demandée depuis une session ---------------------------------------
+    def _demander_observation(self, s: dict, auteur: str, question: str) -> None:
+        """Un participant demande à Observer Thot d'analyser SA session ; le rapport revient dans le fil.
 
-    def _executer_observation(self, p, sessions) -> None:
+        Garde-fous : une seule observation en cours par session, un plafond par session, des tours
+        bornés, le budget du jour ; une observation ne peut pas en demander une autre."""
+        ident = s["id"]
+        reglages = self.config.observation
+        en_cours = [x for x in self.journal.lister()
+                    if x["genre"] == "observation" and x["etat"] != "terminee" and ident in x["sources"]]
+        faites = sum(1 for x in self.journal.lister() if x["genre"] == "observation" and ident in x["sources"])
+        if en_cours:
+            self.journal.ajouter_tour(ident, "Labo", f"{auteur} demande une observation, mais une autre est déjà "
+                                      "en cours sur cette session.", "labo")
+            return
+        if faites >= int(reglages.get("max_par_session", 3)):
+            self.journal.ajouter_tour(ident, "Labo", f"{auteur} demande une observation, mais le plafond de "
+                                      f"{reglages.get('max_par_session', 3)} observations pour cette session est atteint.", "labo")
+            return
+        analystes = [n for n in reglages.get("analystes", []) if n in {p.nom for p in self.config.participants}]
+        if not analystes:
+            analystes = [n for n in s["participants"]
+                         if self.config.participant(n).provider not in ("manuel",)] or s["participants"]
+        tours = max(1, int(reglages.get("tours", 2)))
+        obs = self.creer(f"Demandé par {auteur} dans la session {ident} : {question.strip()}", analystes, tours,
+                         [], genre="observation", sources=[ident])
+        obs = self.journal.lire(obs["id"])
+        obs["parent"] = ident
+        self.journal.sauver(obs)
+        self.journal.ajouter_tour(ident, "Labo", f"Observation `{obs['id']}` lancée à la demande de {auteur} "
+                                  f"({', '.join(analystes)}, {tours} tours). Le rapport arrivera dans ce fil.",
+                                  "labo", evenement={"genre": "observation_demandee", "observation": obs["id"],
+                                                     "demandeur": auteur})
+        self._debut()
+        threading.Thread(target=self._derouler_observation, args=(ident, obs["id"]), daemon=True).start()
+
+    def _derouler_observation(self, parent: str, obs_id: str) -> None:
         try:
-            maxc = int(self.config.contexte.get("max_caracteres", 120000))
-            par_session = max(8000, maxc // max(1, len(sessions)))
-            prompt = "# Sessions à analyser\n\n" + "\n\n".join(
-                self.observatoire.export_session(s, par_session) for s in sessions)
-            rep = providers.appeler(self.config, p, CONSIGNE_OBSERVATION, prompt)
-            self.budget.enregistrer(p.provider, rep.tokens)
-            chemin = self.observatoire.ecrire_observation(p.nom, p.modele, sessions, CONSIGNE_OBSERVATION, rep.texte)
-            self.observatoire.generer_index()
-            self.observation_en_cours = None
-            self.derniere_observation = {"fichier": chemin.name, "erreur": ""}
+            limite = self.journal.lire(obs_id)["tours_max"] + 2
+            for _ in range(limite):
+                o = self.avancer(obs_id)
+                if o["etat"] != "en_cours":
+                    break
+            o = self.journal.lire(obs_id)
+            if o["etat"] != "terminee":
+                self.journal.ajouter_tour(parent, "Labo", f"L'observation `{obs_id}` s'est arrêtée avant la fin "
+                                          f"(état : {o['etat']}"
+                                          + (f", {o['erreurs'][-1]['erreur']}" if o.get("erreurs") else "")
+                                          + "). Elle peut être reprise dans « Observer Thot ».", "labo")
+                return
+            rapport = (o.get("rapports") or [None])[-1]
+            texte = (self.observatoire.observations / rapport).read_text(encoding="utf-8") if rapport else ""
+            limite_c = int(self.config.observation.get("max_caracteres_rapport", 20000))
+            if len(texte) > limite_c:
+                texte = texte[:limite_c] + f"\n\n(… rapport tronqué ici ; texte complet : journal/observations/{rapport})"
+            self.journal.ajouter_tour(
+                parent, "Observer Thot",
+                f"Rapport de l'observation `{obs_id}` (`journal/observations/{rapport}`). C'est une analyse, "
+                f"pas une vérité établie : à vous de voir ce qui vous sert.\n\n{texte}",
+                "observation", evenement={"genre": "observation_rendue", "observation": obs_id, "fichier": rapport})
         except Exception as e:
-            self.observation_en_cours = None
-            self.derniere_observation = {"fichier": "", "erreur": str(e)[:500]}
+            self.journal.ajouter_tour(parent, "Labo", f"L'observation `{obs_id}` a échoué : {masquer(str(e))[:300]}",
+                                      "labo")
         finally:
             self._fin()
 

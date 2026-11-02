@@ -38,7 +38,7 @@ class Journal:
 
     # -- sessions -----------------------------------------------------------
     def creer(self, sujet: str, participants: list[str], tours_max: int,
-              contextes: list[str]) -> dict:
+              contextes: list[str], genre: str = "discussion", sources: list[str] | None = None) -> dict:
         sujet = masquer(sujet)  # le sujet donne aussi son nom au dossier, publié sur GitHub
         base = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + _slug(sujet)
         ident, n = base, 2
@@ -57,6 +57,9 @@ class Journal:
             "relais": None,
             "cree": maintenant(),
             "erreurs": [],
+            "genre": genre,
+            "sources": sources or [],
+            "relances": 0,
         }
         (d / "tours.jsonl").touch()
         self.sauver(session)
@@ -83,7 +86,11 @@ class Journal:
             f = d / "session.json"
             if f.exists():
                 s = json.loads(f.read_text(encoding="utf-8"))
-                res.append({k: s[k] for k in ("id", "sujet", "etat", "cree")})
+                tours = self.tours(s["id"])
+                res.append({k: s.get(k) for k in ("id", "sujet", "etat", "cree", "tours_max")}
+                           | {"genre": s.get("genre", "discussion"), "relances": s.get("relances", 0),
+                              "tours_ia": sum(1 for t in tours if t.get("type") in ("ia", "relais")),
+                              "sources": s.get("sources", [])})
         return res
 
     # -- tours --------------------------------------------------------------

@@ -103,6 +103,9 @@ def resume_session(dossier: Path) -> dict | None:
         "sujet": masquer(s.get("sujet", "")),
         "participants": s.get("participants", []),
         "etat": s.get("etat", "inconnu"),
+        "genre": s.get("genre", "discussion"),
+        "sources": s.get("sources", []),
+        "relances": s.get("relances", 0),
         "cree": s.get("cree"),
         "dernier_evenement": tours[-1].get("horodatage") if tours else s.get("cree"),
         "tours": len(tours),
@@ -179,13 +182,13 @@ class Observatoire:
              "- Modifications du labo : [auto-maj/](auto-maj/)", ""]
         if not resumes:
             return "\n".join(L + ["Aucune session pour l'instant.", ""])
-        L += ["| session | sujet | participants | état | tours (IA) | recadrages | expériences demandées / exécutées | dernier événement |",
-              "|---|---|---|---|---|---|---|---|"]
+        L += ["| session | genre | sujet | participants | état | tours (IA) | relances | recadrages | expériences demandées / exécutées | dernier événement |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
         for r in sorted(resumes, key=lambda r: r["id"], reverse=True):
             sujet = r["sujet"].replace("|", "\\|").replace("\n", " ")
             sujet = sujet[:90] + ("…" if len(sujet) > 90 else "")
-            L.append(f"| [{r['id']}]({r['fichiers']['lisible']}) | {sujet} | {', '.join(r['participants'])} | "
-                     f"{r['etat']} | {r['tours']} ({r['tours_ia']}) | {r['recadrages']} | "
+            L.append(f"| [{r['id']}]({r['fichiers']['lisible']}) | {r['genre']} | {sujet} | {', '.join(r['participants'])} | "
+                     f"{r['etat']} | {r['tours']} ({r['tours_ia']}) | {r['relances']} | {r['recadrages']} | "
                      f"{r['experiences_demandees']} / {r['experiences_executees']} | "
                      f"{(r['dernier_evenement'] or '?')[:16].replace('T', ' ')} |")
         return "\n".join(L + [""])

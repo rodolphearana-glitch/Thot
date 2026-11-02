@@ -131,36 +131,62 @@ def test_9_aucun_secret_dans_les_exports(labo, config):
     assert masquer("noreply@anthropic.com") == "noreply@anthropic.com"
 
 
-def test_10_journaux_historiques_preserves_et_observation(labo, config, monkeypatch):
+def test_10_observation_a_plusieurs_ia_preserve_ses_sources(labo, config):
     s = labo.creer("Source", ["Relais"], 3, [])
     labo.avancer(s["id"])
     labo.relayer(s["id"], "Un tour.\n[RECADRAGE] le cadre change")
-    sources = empreintes(config.racine / "journal" / "sessions")
-    vu = {}
+    sources = empreintes(config.racine / "journal" / "sessions" / s["id"])
 
-    def faux_appel(cfg, p, systeme, prompt):
-        vu["prompt"] = prompt
-        from thot.providers import Reponse
-        return Reponse("### Transformations de cadre\n[FAIT] tour 1, Relais : « le cadre change ».\n"
-                       "### Incertitudes et limites de cette analyse\nUne seule session.", 10)
+    obs = labo.creer("Que change ce recadrage ?", ["A", "B"], 2, [], genre="observation", sources=[s["id"]])
+    assert obs["genre"] == "observation" and obs["sources"] == [s["id"]]
+    assert "le cadre change" in labo.construire_prompt(labo.journal.lire(obs["id"]), "A")
+    for _ in range(3):                       # A, B, puis clôture automatique (2 tours d'IA)
+        labo.avancer(obs["id"])
+    fini = labo.journal.lire(obs["id"])
+    assert fini["etat"] == "terminee" and [t["auteur"] for t in fini["tours"]][:2] == ["A", "B"]
+    assert "Rapport publié" in fini["tours"][-1]["texte"]
+    assert empreintes(config.racine / "journal" / "sessions" / s["id"]) == sources   # sources intactes
 
-    monkeypatch.setattr("thot.labo.providers.appeler", faux_appel)
-    labo.config.participants.append(Participant("Analyste", "echo"))
-    labo.observer("Analyste", [s["id"]])
-    fin = time.time() + 20
-    while time.time() < fin and labo.occupe():
-        time.sleep(0.1)
-    assert empreintes(config.racine / "journal" / "sessions") == sources   # l'analyse n'a pas touché ses sources
-    rapports = [f for f in (config.racine / "journal" / "observations").glob("*.md") if f.name != "INDEX.md"]
-    assert len(rapports) == 1
-    texte = rapports[0].read_text(encoding="utf-8")
-    for rubrique in ("Période analysée", "Sessions incluses", "Sources", "Méthode", "[FAIT]"):
+    rapports = lambda: sorted(f for f in (config.racine / "journal" / "observations").glob("*.md") if f.name != "INDEX.md")
+    premier = rapports()
+    assert len(premier) == 1
+    texte = premier[0].read_text(encoding="utf-8")
+    for rubrique in ("Période analysée", "Sessions incluses", "Sources", "Méthode", "Tour 0 — A", "Tour 1 — B"):
         assert rubrique in texte
-    assert "le cadre change" in vu["prompt"]
-    # Une deuxième observation ne remplace pas la première.
-    labo.observer("Analyste", [s["id"]])
-    while labo.occupe():
-        time.sleep(0.1)
-    rapports2 = [f for f in (config.racine / "journal" / "observations").glob("*.md") if f.name != "INDEX.md"]
-    assert len(rapports2) == 2 and rapports[0].read_text(encoding="utf-8") == texte
-    assert rapports[0].name in (config.racine / "journal" / "observations" / "INDEX.md").read_text(encoding="utf-8")
+    # Relance puis nouvelle clôture : un deuxième rapport s'ajoute, le premier n'est pas réécrit.
+    labo.ajouter_tours(obs["id"], 1)
+    labo.avancer(obs["id"])
+    labo.changer_etat(obs["id"], "terminee")
+    assert len(rapports()) == 2 and premier[0].read_text(encoding="utf-8") == texte
+    assert labo.journal.lire(obs["id"])["relances"] == 1
+    liste = {x["id"]: x for x in labo.journal.lister()}
+    assert liste[obs["id"]]["genre"] == "observation" and liste[obs["id"]]["relances"] == 1
+
+
+def test_11_pas_d_observation_d_observation(labo):
+    s = labo.creer("Discussion", ["A"], 1, [])
+    obs = labo.creer("Obs", ["A"], 1, [], genre="observation", sources=[s["id"]])
+    obs2 = labo.creer("Obs d'obs", ["A"], 1, [], genre="observation", sources=[obs["id"]])
+    assert obs2["sources"] == [s["id"]]          # l'observation demandée est écartée, pas de récursion
+
+
+def test_12_session_demande_une_observation(labo, config):
+    s = labo.creer("Recherche", ["Relais", "A"], 6, [])
+    labo.avancer(s["id"])
+    labo.relayer(s["id"], "On tourne en rond.\n\n```thot-observer\nRépétons-nous la même idée ?\n```\n")
+    fin = time.time() + 30
+    while time.time() < fin and labo.occupe():
+        time.sleep(0.2)
+    tours = labo.journal.lire(s["id"])["tours"]
+    rendu = [t for t in tours if t["type"] == "observation"]
+    assert len(rendu) == 1 and rendu[0]["auteur"] == "Observer Thot"
+    assert "Période analysée" in rendu[0]["texte"]
+    obs = [x for x in labo.journal.lister() if x["genre"] == "observation"]
+    assert len(obs) == 1 and obs[0]["sources"] == [s["id"]] and obs[0]["etat"] == "terminee"
+    # Le rapport fait partie de ce que lira le prochain participant.
+    assert "Observer Thot" in labo.construire_prompt(labo.journal.lire(s["id"]), "A")
+    # Plafond : au-delà de max_par_session, la demande est refusée.
+    config.observation["max_par_session"] = 1
+    labo.intervenir(s["id"], "x")
+    labo._post_traitement(labo.journal.lire(s["id"]), "Relais", "```thot-observer\nencore\n```")
+    assert "plafond" in labo.journal.lire(s["id"])["tours"][-1]["texte"]

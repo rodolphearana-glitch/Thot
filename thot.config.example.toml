@@ -85,6 +85,18 @@ duree_max_s = 3600        # au-delà, Claude Code / Codex et tout ce qu'ils ont 
 duree_max_tests_s = 600
 
 # ---------------------------------------------------------------------------
+# Observer Thot : des IA analysent des sessions passées (menu « Observer Thot »),
+# ou une session demande elle-même à être observée (bloc thot-observer) et reçoit
+# le rapport dans son fil.
+# ---------------------------------------------------------------------------
+
+[observation]
+analystes = []            # vide = les participants de la session qui demande ; sinon par ex. ["GPT", "Claude"]
+tours = 2                 # tours d'IA d'une observation demandée depuis une session
+max_par_session = 3       # au-delà, une session ne peut plus demander d'observation
+max_caracteres_rapport = 20000
+
+# ---------------------------------------------------------------------------
 # Mise à jour depuis GitHub (comme le Studio TLS) : au démarrage puis toutes les
 # N minutes, Thot récupère les nouveautés de GitHub, teste le nouveau code avant
 # de l'installer, envoie sur GitHub le journal du labo, et redémarre seul si le

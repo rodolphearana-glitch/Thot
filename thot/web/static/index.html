@@ -64,6 +64,7 @@ button:disabled{opacity:.45;cursor:default}
 .tour.local{border-left:4px solid var(--vert)}
 .tour.codage{border-left:4px solid var(--ocre)}
 .tour.relecture{border-left:4px dashed var(--lapis)}
+.tour.observation{border-left:4px solid var(--vert);background:color-mix(in srgb,var(--vert) 7%,var(--carte))}
 .tour.labo{border-left:4px solid var(--encre-2);font-size:14px}
 .recadrage{background:color-mix(in srgb,var(--ocre) 14%,transparent);padding:2px 6px;border-radius:4px}
 .contenu pre{background:var(--papyrus-2);padding:8px;border-radius:6px;overflow:auto;font-size:13px}
@@ -141,13 +142,28 @@ main.droite-repliee .bande{display:flex}
 
   <details class="bloc" data-cle="observer">
     <summary>Observer Thot</summary>
-    <p class="aide-obs">Une IA analyse des sessions passées, en lecture seule : répétitions, contradictions,
-      recadrages, prédictions et résultats. Le rapport s'ajoute à <code>journal/observations/</code>.</p>
-    <label>Analyste <select id="obs-participant"></select></label>
-    <label class="cases"><input type="checkbox" id="obs-courante" checked> seulement la session ouverte</label>
-    <p><button class="second" id="obs-lancer">Lancer une observation</button></p>
-    <div id="obs-etat" class="vide"></div>
-    <details class="sous-bloc" data-cle="obs-rapports" open>
+    <p class="aide-obs">Des IA discutent ensemble de sessions passées, en lecture seule : répétitions,
+      contradictions, recadrages, prédictions et résultats. À la clôture, la discussion devient un rapport
+      dans <code>journal/observations/</code>.</p>
+    <details class="sous-bloc" data-cle="obs-nouvelle">
+      <summary>Nouvelle observation</summary>
+      <label>Question<textarea id="obs-sujet" placeholder="Ce que les analystes doivent chercher (laisser vide : analyse générale)"></textarea></label>
+      <h2>Analystes (dans l'ordre)</h2>
+      <div id="obs-participants" class="cases"></div>
+      <h2>Sessions observées</h2>
+      <div id="obs-sources" class="cases"></div>
+      <label style="margin-top:8px">Tours d'IA <input type="number" id="obs-tours" value="4" min="1" max="100"></label>
+      <p><button id="obs-creer">Ouvrir l'observation</button></p>
+    </details>
+    <details class="sous-bloc" data-cle="obs-en-cours" open>
+      <summary>En cours <span id="nb-obs-en-cours" class="compte"></span></summary>
+      <ul id="obs-en-cours" class="liste-session"></ul>
+    </details>
+    <details class="sous-bloc" data-cle="obs-terminees">
+      <summary>Terminées <span id="nb-obs-terminees" class="compte"></span></summary>
+      <ul id="obs-terminees" class="liste-session"></ul>
+    </details>
+    <details class="sous-bloc" data-cle="obs-rapports">
       <summary>Rapports <span id="nb-obs" class="compte"></span></summary>
       <ul id="obs-liste" class="liste-session"></ul>
     </details>
@@ -237,8 +253,17 @@ async function chargerEtat(){
     $("#contextes").innerHTML = e.contextes.map(c=>`<label><input type="checkbox" value="${esc(c)}"> ${esc(c.replace(/^contextes\//,""))}</label>`).join("") || '<span class="vide">aucun</span>';
     $("#participants").dataset.fait = 1;
   }
-  const ligne = s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))}</small></li>`;
-  const enCours = e.sessions.filter(s=>s.etat!=="terminee"), finies = e.sessions.filter(s=>s.etat==="terminee");
+  const ligne = s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))} · ${s.tours_ia}/${s.tours_max} tours${s.relances?` · ${s.relances} relance${s.relances>1?"s":""}`:""}</small></li>`;
+  const discussions = e.sessions.filter(s=>s.genre!=="observation"), observations = e.sessions.filter(s=>s.genre==="observation");
+  const enCours = discussions.filter(s=>s.etat!=="terminee"), finies = discussions.filter(s=>s.etat==="terminee");
+  const obsEnCours = observations.filter(s=>s.etat!=="terminee"), obsFinies = observations.filter(s=>s.etat==="terminee");
+  $("#obs-en-cours").innerHTML = obsEnCours.map(ligne).join("") || '<li class="vide">aucune</li>';
+  $("#obs-terminees").innerHTML = obsFinies.map(ligne).join("") || '<li class="vide">aucune</li>';
+  $("#nb-obs-en-cours").textContent = `(${obsEnCours.length})`; $("#nb-obs-terminees").textContent = `(${obsFinies.length})`;
+  const srcCoches = new Set([...document.querySelectorAll("#obs-sources input:checked")].map(i=>i.value));
+  const premiereFois = !$("#obs-sources").dataset.fait;
+  $("#obs-sources").innerHTML = discussions.map(s=>`<label><input type="checkbox" value="${esc(s.id)}" ${(premiereFois ? s.id===courante : srcCoches.has(s.id))?"checked":""}> ${esc(s.sujet.slice(0,60))} <small>${esc(s.cree.slice(5,16).replace("T"," "))}</small></label>`).join("") || '<span class="vide">aucune discussion</span>';
+  $("#obs-sources").dataset.fait = 1;
   $("#sessions-en-cours").innerHTML = enCours.map(ligne).join("") || '<li class="vide">aucune</li>';
   $("#sessions-terminees").innerHTML = finies.map(ligne).join("") || '<li class="vide">aucune</li>';
   $("#nb-en-cours").textContent = `(${enCours.length})`; $("#nb-terminees").textContent = `(${finies.length})`;
@@ -246,11 +271,10 @@ async function chargerEtat(){
   const avant = contextesDispo.length; contextesDispo = e.contextes;
   if(derniere && !avant) vueContextes(derniere);
   const b = e.budget;
-  const sel = $("#obs-participant");
-  if(!sel.dataset.fait){
-    sel.innerHTML = e.participants.filter(p=>!["manuel","echo"].includes(p.provider))
-      .map(p=>`<option value="${esc(p.nom)}">${esc(p.nom)}</option>`).join("");
-    sel.dataset.fait = 1;
+  if(!$("#obs-participants").dataset.fait){
+    $("#obs-participants").innerHTML = e.participants.filter(p=>p.provider!=="manuel")
+      .map(p=>`<label><input type="checkbox" value="${esc(p.nom)}" ${["claude","codex"].includes(p.provider)?"checked":""}> ${esc(p.nom)}</label>`).join("");
+    $("#obs-participants").dataset.fait = 1;
   }
   $("#obs-liste").innerHTML = (e.observations||[]).slice().reverse()
     .map(o=>`<li data-obs="${esc(o.fichier)}">${esc(o.titre)}</li>`).join("") || '<li class="vide">aucun</li>';
@@ -261,10 +285,6 @@ async function chargerEtat(){
       <div class="tour labo"><div class="contenu">${rendu(r.texte)}</div></div></div>`;
     $("#retour").onclick=()=>courante?ouvrir(courante):($("#centre").innerHTML="");
   });
-  const oc = e.observation_en_cours, dob = e.derniere_observation;
-  $("#obs-etat").innerHTML = oc ? `Observation en cours par ${esc(oc.participant)} (${oc.sessions.length} session(s))…`
-    : (dob && dob.erreur ? `<span class="erreur">${esc(dob.erreur)}</span>` : "");
-  $("#obs-lancer").disabled = !!oc;
   $("#budget").innerHTML = `${b.appels} / ${b.plafonds.appels_par_jour} appels<br>` +
     Object.entries(b.tokens||{}).map(([k,v])=>`${esc(k)} : ${v.toLocaleString("fr")} tokens`).join("<br>");
   const carte = r=>`<div class="carte-maj">
@@ -301,10 +321,12 @@ async function chargerEtat(){
 }
 
 function vueContextes(s){
+  const sources = (s.genre==="observation" && (s.sources||[]).length)
+    ? `<div class="ajout-contexte"><b>Observation</b> — sessions observées (lecture seule) :<br>${s.sources.map(x=>esc(x)).join("<br>")}</div>` : "";
   const choisis = new Set(s.contextes||[]);
   const tous = [...new Set([...contextesDispo, ...choisis])].sort();
   $("#contextes-courante").innerHTML = tous.map(c=>`<label><input type="checkbox" value="${esc(c)}" ${choisis.has(c)?"checked":""}> ${esc(c.replace(/^contextes\//,""))}</label>`).join("")
-    + `<div class="ajout-contexte">Cocher ou décocher change les contextes envoyés aux tours suivants.</div>`;
+    + `<div class="ajout-contexte">Cocher ou décocher change les contextes envoyés aux tours suivants.</div>` + sources;
   $("#contextes-courante").querySelectorAll("input").forEach(i=>i.onchange=async()=>{
     const liste=[...$("#contextes-courante").querySelectorAll("input:checked")].map(x=>x.value);
     try{ vueSession(await api(`/api/sessions/${s.id}/contextes`,{contextes:liste})); }catch(err){ alert(err.message); }
@@ -323,7 +345,7 @@ function vueSession(s){
   const brouillon = $("#intervention") ? $("#intervention").value : "";
   $("#centre").innerHTML = `
    <div id="fil">
-    <h2>Session · <span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> · ${nbIA} / ${s.tours_max} tours d'IA</h2>
+    <h2>${s.genre==="observation"?"Observation":"Session"} · <span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> · ${nbIA} / ${s.tours_max} tours d'IA</h2>
     <div class="tour humain"><div class="contenu">${rendu(s.sujet)}</div></div>
     ${s.tours.map(t=>`<div class="tour ${esc(t.type)}"><span class="qui">${esc(t.auteur)}</span><span class="quand">${esc(t.horodatage.slice(11,16))} · ${esc(t.type)}${t.tokens?" · "+t.tokens+" tokens":""}</span><div class="contenu">${rendu(t.texte)}</div></div>`).join("")}
     ${erreurs}${relais}
@@ -387,12 +409,13 @@ $("#creer").onclick = async()=>{
   try{ const s=await api("/api/sessions",{sujet,participants,contextes,tours_max:+$("#tours").value||6});
        $("#sujet").value=""; ouvrir(s.id); }catch(e){ alert(e.message); }
 };
-$("#obs-lancer").onclick = async()=>{
-  const participant = $("#obs-participant").value; if(!participant) return;
-  const sessions = $("#obs-courante").checked && courante ? [courante] : [];
-  if(!confirm(`Lancer une observation par ${participant} sur ${sessions.length ? "la session ouverte" : "toutes les sessions"} ? Elle compte dans le budget du jour.`)) return;
-  try{ await api("/api/observer",{participant,sessions}); }catch(e){ alert(e.message); }
-  chargerEtat();
+$("#obs-creer").onclick = async()=>{
+  const participants=[...document.querySelectorAll("#obs-participants input:checked")].map(i=>i.value);
+  if(!participants.length) return alert("Choisis au moins un analyste.");
+  const sources=[...document.querySelectorAll("#obs-sources input:checked")].map(i=>i.value);
+  const sujet=$("#obs-sujet").value.trim() || "Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.";
+  try{ const s=await api("/api/sessions",{sujet,participants,contextes:[],tours_max:+$("#obs-tours").value||4,genre:"observation",sources});
+       $("#obs-sujet").value=""; ouvrir(s.id); }catch(err){ alert(err.message); }
 };
 $("#synchroniser").onclick = async()=>{ const b=$("#synchroniser"); b.disabled=true; b.textContent="…";
   try{ await api("/api/synchro",{}); }catch(e){ alert(e.message); }
