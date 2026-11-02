@@ -23,13 +23,14 @@ header{display:flex;align-items:baseline;gap:14px;padding:14px 20px;border-botto
 header h1{margin:0;font-size:26px;letter-spacing:.06em}
 header h1 span{color:var(--ocre)}
 header .devise{color:var(--encre-2);font-style:italic}
-main{display:grid;grid-template-columns:290px 1fr 320px;gap:0;height:calc(100vh - 62px)}
+main{display:grid;grid-template-columns:290px 1fr 320px;gap:0;height:calc(100vh - 62px);transition:grid-template-columns .2s}
+main.droite-repliee{grid-template-columns:290px 1fr 38px}
 aside{padding:16px 18px;overflow:auto;max-height:calc(100vh - 62px)}
 section#centre{display:flex;flex-direction:column;height:calc(100vh - 62px);min-width:0}
 #fil{flex:1;overflow:auto;padding:16px 22px}
 #saisie{border-top:1px solid var(--trait);background:var(--papyrus-2);padding:10px 22px 14px}
 #saisie .ligne{display:flex;gap:8px;align-items:flex-end}
-#saisie textarea{min-height:46px;max-height:220px;flex:1}
+#saisie textarea{min-height:46px;max-height:45vh;flex:1;resize:none;overflow-y:hidden;line-height:1.45}
 #saisie .barre{margin:0 0 8px}
 #saisie .aide{font-size:12px;color:var(--encre-2);margin-top:4px}
 .accueil{padding:24px}
@@ -82,6 +83,15 @@ details>summary::-webkit-details-marker{display:none}
 details>summary::before{content:"▸ ";display:inline-block;width:1em;color:var(--ocre)}
 details[open]>summary::before{content:"▾ "}
 .compte{color:var(--encre-2);font-size:12px}
+aside.droite{position:relative}
+.replier{position:absolute;top:10px;right:10px;padding:2px 9px;background:transparent;color:var(--encre-2);border-color:var(--trait);z-index:2}
+.bande{display:none;cursor:pointer;height:100%;flex-direction:column;align-items:center;gap:12px;padding-top:6px;color:var(--encre-2)}
+.bande-titre{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.badge{background:var(--ocre);color:var(--papyrus);border-radius:10px;font-size:12px;padding:0 6px;min-width:1.4em;text-align:center}
+.badge:empty{display:none}
+main.droite-repliee aside.droite{padding:10px 4px;overflow:hidden}
+main.droite-repliee .contenu-droite, main.droite-repliee .replier{display:none}
+main.droite-repliee .bande{display:flex}
 .ajout-tours{display:inline-flex;align-items:center;gap:6px;font-size:14px}
 .ajout-tours input{width:64px;padding:5px 6px}
 .ajout-contexte{font-size:12px;color:var(--encre-2);margin-top:6px}
@@ -142,8 +152,27 @@ details[open]>summary::before{content:"▾ "}
 </section>
 
 <aside class="droite">
-  <h2>Modifications du labo</h2>
-  <div id="automaj"></div>
+  <button class="replier" id="replier-droite" title="Réduire ce panneau">⟩</button>
+  <div class="bande" id="bande-droite" title="Ouvrir le panneau des modifications">
+    <span>⟨</span><span class="bande-titre">Modifications</span><span id="badge-attente" class="badge"></span>
+  </div>
+  <div class="contenu-droite">
+  <details class="bloc" data-cle="modifs" open>
+    <summary>Modifications du labo</summary>
+    <details class="sous-bloc" data-cle="modifs-attente" open>
+      <summary>En attente de ton accord <span id="nb-attente" class="compte"></span></summary>
+      <div id="automaj-attente"></div>
+    </details>
+    <details class="sous-bloc" data-cle="modifs-appliquees">
+      <summary>Appliquées <span id="nb-appliquees" class="compte"></span></summary>
+      <div id="automaj-appliquees"></div>
+    </details>
+    <details class="sous-bloc" data-cle="modifs-autres">
+      <summary>Refusées, rejetées, annulées <span id="nb-autres" class="compte"></span></summary>
+      <div id="automaj-autres"></div>
+    </details>
+  </details>
+  </div>
 </aside>
 </main>
 
@@ -203,7 +232,7 @@ async function chargerEtat(){
   const b = e.budget;
   $("#budget").innerHTML = `${b.appels} / ${b.plafonds.appels_par_jour} appels<br>` +
     Object.entries(b.tokens||{}).map(([k,v])=>`${esc(k)} : ${v.toLocaleString("fr")} tokens`).join("<br>");
-  $("#automaj").innerHTML = e.automaj.map(r=>`<div class="carte-maj">
+  const carte = r=>`<div class="carte-maj">
      <span class="etiquette ${esc(r.statut)}">${esc(r.statut)}</span> <b>${esc(r.auteur)}</b>
      <div>${esc((r.justification||"").slice(0,220))}</div>
      <small>${esc((r.fichiers||[]).join(", "))}</small>
@@ -213,7 +242,16 @@ async function chargerEtat(){
        <button class="second" data-voir="${esc(r.id)}">Voir</button>
        ${r.statut==="en_attente"?`<button data-act="approuver" data-id="${esc(r.id)}">Approuver</button><button class="danger" data-act="refuser" data-id="${esc(r.id)}">Refuser</button>`:""}
        ${r.statut==="applique"?`<button class="danger" data-act="annuler" data-id="${esc(r.id)}">Annuler</button>`:""}
-     </div></div>`).join("") || '<p class="vide">Aucune proposition pour l\'instant.</p>';
+     </div></div>`;
+  const attente = e.automaj.filter(r=>r.statut==="en_attente"), appliquees = e.automaj.filter(r=>r.statut==="applique");
+  const autres = e.automaj.filter(r=>r.statut!=="en_attente" && r.statut!=="applique");
+  const vide = '<p class="vide">aucune</p>';
+  $("#automaj-attente").innerHTML = attente.map(carte).join("") || vide;
+  $("#automaj-appliquees").innerHTML = appliquees.map(carte).join("") || vide;
+  $("#automaj-autres").innerHTML = autres.map(carte).join("") || vide;
+  $("#nb-attente").textContent = `(${attente.length})`; $("#nb-appliquees").textContent = `(${appliquees.length})`;
+  $("#nb-autres").textContent = `(${autres.length})`;
+  $("#badge-attente").textContent = attente.length ? String(attente.length) : "";
   document.querySelectorAll("[data-act]").forEach(b=>b.onclick=async()=>{
     if(!confirm(`${b.dataset.act} cette modification ?`)) return;
     try{ await api(`/api/automaj/${b.dataset.id}/${b.dataset.act}`,{}); }catch(err){ alert(err.message); }
@@ -271,6 +309,8 @@ function vueSession(s){
     </div>
    </div>`;
   $("#intervention").value = brouillon;
+  $("#intervention").addEventListener("input", e=>{ ajuster(e.target); const f=$("#fil"); f.scrollTop=f.scrollHeight; });
+  ajuster($("#intervention"));
   const lier=(id,f)=>{const b=$("#"+id); if(b) b.onclick=f;};
   lier("avancer",()=>pas());
   lier("auto",()=>{auto=!auto; if(auto) boucle(); else vueSession(s);});
@@ -315,6 +355,20 @@ $("#creer").onclick = async()=>{
 $("#synchroniser").onclick = async()=>{ const b=$("#synchroniser"); b.disabled=true; b.textContent="…";
   try{ await api("/api/synchro",{}); }catch(e){ alert(e.message); }
   b.disabled=false; b.textContent="Synchroniser maintenant"; chargerEtat(); };
+function replierDroite(oui){
+  document.querySelector("main").classList.toggle("droite-repliee", oui);
+  try{ localStorage.setItem("thot-droite-repliee", oui?"1":"0"); }catch(e){}
+}
+$("#replier-droite").onclick = ()=>replierDroite(true);
+$("#bande-droite").onclick = ()=>replierDroite(false);
+try{ if(localStorage.getItem("thot-droite-repliee")==="1") replierDroite(true); }catch(e){}
+function ajuster(t){
+  // La zone d'écriture grandit avec le texte, jusqu'à près de la moitié de l'écran, puis défile.
+  t.style.height = "auto";
+  const max = window.innerHeight * 0.45;
+  t.style.height = Math.min(t.scrollHeight + 2, max) + "px";
+  t.style.overflowY = t.scrollHeight + 2 > max ? "auto" : "hidden";
+}
 document.querySelectorAll("details[data-cle]").forEach(d=>{
   try{ const v=localStorage.getItem("thot-"+d.dataset.cle); if(v!==null) d.open = v==="1"; }catch(e){}
   d.addEventListener("toggle",()=>{ try{ localStorage.setItem("thot-"+d.dataset.cle, d.open?"1":"0"); }catch(e){} });
