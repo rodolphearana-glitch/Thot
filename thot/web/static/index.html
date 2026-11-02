@@ -141,8 +141,9 @@ async function chargerEtat(){
   const e = await api("/api/etat");
   const sy = e.synchro;
   if(sy){
-    if(version && sy.version && sy.version!==version && !auto){ location.reload(); return; }
-    version = sy.version || version;
+    // Recharger seulement si le code a changé (pas pour un simple envoi du journal).
+    if(version && sy.version_code && sy.version_code!==version && !auto){ location.reload(); return; }
+    version = sy.version_code || version;
     $("#synchro").innerHTML = `version ${esc(sy.version||"?")}<br>${esc(sy.message||"")}`
       + (sy.derniere?`<br><small>${esc(sy.derniere.slice(11,16))}</small>`:"")
       + (sy.erreur?`<br><span class="erreur">${esc(sy.erreur)}</span>`:"")
@@ -228,7 +229,7 @@ function vueSession(s){
   const fil = $("#fil"); fil.scrollTop = fil.scrollHeight;
 }
 
-async function ouvrir(id){ courante=id; auto=false; vueSession(await api(`/api/sessions/${id}`)); chargerEtat(); }
+async function ouvrir(id){ courante=id; auto=false; try{ history.replaceState(null,"","#"+id); }catch(e){} vueSession(await api(`/api/sessions/${id}`)); chargerEtat(); }
 async function etat(e){ auto=false; vueSession(await api(`/api/sessions/${courante}/etat`,{etat:e})); chargerEtat(); }
 async function pas(){
   const b=$("#avancer"); if(b){b.disabled=true; b.textContent="…";}
@@ -256,7 +257,9 @@ $("#creer").onclick = async()=>{
 $("#synchroniser").onclick = async()=>{ const b=$("#synchroniser"); b.disabled=true; b.textContent="…";
   try{ await api("/api/synchro",{}); }catch(e){ alert(e.message); }
   b.disabled=false; b.textContent="Synchroniser maintenant"; chargerEtat(); };
-chargerEtat().catch(()=>{}); setInterval(()=>{ if(!auto) chargerEtat().catch(()=>{}); }, 15000);
+chargerEtat().catch(()=>{});
+if(location.hash.length>1){ ouvrir(decodeURIComponent(location.hash.slice(1))).catch(()=>{}); }
+setInterval(()=>{ if(!auto) chargerEtat().catch(()=>{}); }, 15000);
 </script>
 </body>
 </html>

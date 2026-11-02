@@ -1,4 +1,3 @@
 # Pour les expériences sur IA locale (entraînement de petits modèles).
 # Voir experiences/README.md pour l'installation de PyTorch selon la carte graphique.
-numpy>=1.26
 torch>=2.3

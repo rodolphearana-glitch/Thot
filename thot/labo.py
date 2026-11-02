@@ -269,7 +269,7 @@ class Labo:
             ok = r.returncode == 0
         except subprocess.TimeoutExpired:
             sortie, ok = f"Interrompue après {duree} s.", False
-        horo = datetime.now().strftime("%Y%m%d-%H%M%S")
+        horo = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         res = {"nom": nom, "parametres": params, "demandeur": demandeur, "session": ident,
                "quand": maintenant(), "reussi": ok, "sortie": sortie}
         (dossier_res / f"{horo}.json").write_text(json.dumps(res, ensure_ascii=False, indent=2),

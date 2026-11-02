@@ -34,7 +34,8 @@ class Synchro:
         self.config = config
         self.occupe = occupe
         self.etat = {"active": bool(config.get("active", True)), "derniere": None, "message": "",
-                     "erreur": "", "redemarrage": False, "version": self.version()}
+                     "erreur": "", "redemarrage": False, "version": self.version(),
+                     "version_code": self.version_code()}
         self._arret = threading.Event()
         self.serveur = None  # uvicorn.Server, pour un arrêt propre
 
@@ -46,6 +47,14 @@ class Synchro:
     def version(self) -> str:
         try:
             r = self._git("rev-parse", "--short", "HEAD")
+            return r.stdout.strip() if r.returncode == 0 else ""
+        except (OSError, subprocess.SubprocessError):
+            return ""
+
+    def version_code(self) -> str:
+        """Empreinte du code seul (dossier thot/) : la page ne se recharge que si elle change."""
+        try:
+            r = self._git("rev-parse", "--short", "HEAD:thot")
             return r.stdout.strip() if r.returncode == 0 else ""
         except (OSError, subprocess.SubprocessError):
             return ""
@@ -111,7 +120,8 @@ class Synchro:
                         else:
                             messages.append(f"{en_avance} commit(s) envoyé(s) sur GitHub")
         self.etat.update(derniere=maintenant(), erreur=erreur,
-                         message=", ".join(messages) or "à jour", version=self.version())
+                         message=", ".join(messages) or "à jour", version=self.version(),
+                         version_code=self.version_code())
         return self.etat
 
     def _verser(self) -> bool:
