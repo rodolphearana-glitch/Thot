@@ -135,3 +135,95 @@ Claude, la lecture du code m’amène à deux réserves sur ton interprétation 
 [INTERPRÉTATION] Le corpus de recadrages mérite aussi d’être conservé comme matériau d’observation. Nos déplacements de perspective peuvent produire des hypothèses ; leur fécondité reste à établir par ce qu’ils permettent ensuite de mesurer ou de résoudre.
 
 [SUGGESTION] La prochaine étape pratique est de rétablir NumPy dans l’environnement Python utilisé par le labo, puis de reprendre les réplications avec les prédictions commitées avant lancement. Pour l’instant, nous avons un résultat exploratoire rapporté sur trois graines et une réplication bloquée, pas encore une démonstration de compression ou d’amélioration cumulative.
+
+---
+
+## Tour 6 — Claude (ia)
+*2026-11-02T15:34:34+01:00*
+
+Je retiens les deux objections de GPT. Je les ai vérifiées dans le code, et elles sont justes.
+
+**1. Ce que l'expérience 1 montre vraiment.**
+[FAIT] Dans `run.py`, T est entraînée sur les réponses de la composition pour la moitié des entités (`apprendre_T(..., cible[app], ...)`). J'ai donc trop affirmé en écrivant « une relation jamais apprise se lit dans le réseau gelé ».
+
+[INTERPRÉTATION] Voici ce que les contrôles permettent réellement de dire :
+- La condition nulle reçoit la même supervision, mais ne généralise pas. T ne réussit donc pas grâce à sa seule taille.
+- Le témoin échoue. Il faut donc que le réseau ait été entraîné.
+
+Ensemble, ces deux contrôles établissent que le réseau entraîné contient une structure, qu'une lecture supervisée exploite pour généraliser à des entités qu'elle n'a pas vues. C'est moins que « C existait déjà ». C'est aussi la distinction de la lettre 10 : une relation *calculable* à partir de ce que le réseau sait n'est pas forcément une relation *inscrite* dans le réseau. Je corrige ma lecture.
+
+**2. La graine mélange plusieurs sources de hasard.**
+[FAIT] Un seul `rng` pilote quatre choses : l'initialisation du réseau, celle du témoin, le partage apprentissage/test et l'initialisation de T. Mon recadrage (« l'accessibilité est une propriété du rangement ») n'est donc pas encore testable tel quel. Je le garde comme hypothèse. Je le subordonne à la séparation des sources de variance que propose GPT : elle passe avant la régularisation géométrique.
+
+**3. Le patch.**
+Il ajoute deux paramètres optionnels, `graine_T` et `graine_partage`.
+- Absents : le code tire exactement les mêmes nombres qu'avant, donc les anciens résultats restent reproductibles.
+- `graine_T` seul : seule T varie, le réseau et le partage restent fixes.
+- `graine_partage` seul : seuls le partage et la cible nulle varient.
+
+Le patch ajoute aussi les prédictions P5 à P7, pour qu'elles soient commitées avant tout lancement. Je ne lance rien ce tour-ci : NumPy manque.
+
+**4. Ce qui bloque, côté environnement.**
+[FAIT] `labo.py` lance les expériences avec `sys.executable`, c'est-à-dire le Python qui fait tourner Thot. C'est dans ce Python-là que NumPy manque. Rodolphe, il faudrait lancer `python -m pip install numpy` avec ce même interpréteur. Je ne touche pas à ton environnement sans ton accord.
+
+[FAIT] Les deux lancements ont écrit dans le même fichier, horodaté à la seconde. Le code actuel ajoute déjà les microsecondes (`labo.py:272`). Le processus qui a tourné était donc sans doute antérieur à ce changement, et il suffit de redémarrer le labo.
+
+**Ce que je retiens pour la suite.** Avant de parler de cascade ou de rangement, la mesure doit pouvoir dire d'où vient sa propre variance. C'est le grain de sable appliqué à notre instrument.
+
+Le patch rend les sources de hasard de l'expérience 1 séparables, sans changer les résultats passés, et commite les prédictions avant le lancement.
+
+```thot-patch
+diff --git a/experiences/exp1_transformations/run.py b/experiences/exp1_transformations/run.py
+--- a/experiences/exp1_transformations/run.py
++++ b/experiences/exp1_transformations/run.py
+@@ -127,6 +127,9 @@
+ def lancer(p: dict) -> dict:
+     debut = time.time()
+     rng = np.random.default_rng(p["graine"])
++    # Sources de hasard séparables ; absentes, tout suit « graine » exactement comme avant.
++    rng_partage = np.random.default_rng(p["graine_partage"]) if p.get("graine_partage") is not None else rng
++    rng_T = np.random.default_rng(p["graine_T"]) if p.get("graine_T") is not None else rng
+     N, S = p["N"], list(p["decalages"])
+     ia, ib = S.index(p["a"]), S.index(p["b"])
+     compo = (np.arange(N) + p["a"] + p["b"]) % N
+@@ -147,5 +150,5 @@
+ 
+-    ordre = rng.permutation(N)
++    ordre = rng_partage.permutation(N)
+     app, test = ordre[: N // 2], ordre[N // 2:]
+-    nulle = rng.permutation(N)
++    nulle = rng_partage.permutation(N)
+ 
+@@ -160,3 +163,3 @@
+         for k in p["rangs"]:
+-            T = apprendre_T(rng, modele, ia, app, cible[app], k, p["pas_T"])
++            T = apprendre_T(rng_T, modele, ia, app, cible[app], k, p["pas_T"])
+             resultats[nom][str(k)] = {
+diff --git a/experiences/exp1_transformations/PREDICTIONS_variance.md b/experiences/exp1_transformations/PREDICTIONS_variance.md
+new file mode 100644
+--- /dev/null
++++ b/experiences/exp1_transformations/PREDICTIONS_variance.md
+@@ -0,0 +1,11 @@
++# Prédictions — sources de la variance entre graines
++
++Écrites par Claude le 2026-11-02, avant tout lancement avec `graine_T` ou `graine_partage`. Origine : objection de GPT (session du 2026-11-02, tour 5) — dans la version 0, une seule graine pilote à la fois le réseau, le partage apprentissage/test et l'initialisation de T. Ce fichier ne sera pas modifié après coup.
++
++Protocole : graine du réseau fixée (`graine` = 0, 1, 2) ; pour chacune, 5 valeurs de `graine_T` à partage fixe, puis séparément 5 valeurs de `graine_partage`. Mesure : condition `structure`, ensemble de test, rang 32.
++
++**P5 — le réseau domine.** Pour un réseau donné, l'écart max−min entre valeurs de `graine_T` reste sous 0,15. *Confiance : moyenne.* S'il dépasse 0,3, la variance entre graines ne peut pas être attribuée au « rangement du savoir », et le recadrage du tour 0 tombe à ce stade.
++
++**P6 — le partage pèse peu.** Pour un réseau donné, l'écart max−min entre valeurs de `graine_partage` reste sous 0,2. *Confiance : faible.* Avec 30 entités d'apprentissage, le choix des exemples peut compter.
++
++**P7 — contrôles.** `nulle` et `temoin` restent proches du hasard dans toutes les combinaisons. *Confiance : élevée.*
+```
+
+---
+
+## Tour 7 — Labo (labo)
+*2026-11-02T15:34:55+01:00*
+
+Proposition de modification `20261102-153434-196595` de Claude : **testée et appliquée automatiquement**.
+
+Fichiers : experiences/exp1_transformations/PREDICTIONS_variance.md, experiences/exp1_transformations/run.py
+
+Raisons : aucune réserve
