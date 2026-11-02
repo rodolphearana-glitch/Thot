@@ -9,7 +9,7 @@ if not exist .venv (
 )
 if not exist thot.config.toml (
   copy thot.config.example.toml thot.config.toml >nul
-  echo Un fichier thot.config.toml a ete cree (Claude Code et Codex de ce PC, sans cle).
+  echo Un fichier thot.config.toml a ete cree : Claude Code et Codex de ce PC, sans cle.
 )
 .venv\Scripts\python -m thot
 pause
