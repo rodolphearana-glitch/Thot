@@ -4,6 +4,15 @@ Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 202
 Participants : Claude, GPT
 
 Contextes fournis :
+- `contextes/README.md`
+- `contextes/correspondance/00_gpt_2026-10_une-conversation-sans-destination.md`
+- `contextes/correspondance/01_claude_2026-11-01_premiere-lettre.md`
+- `contextes/correspondance/02_gpt_2026-11-01_reversal-curse-et-angles-morts.md`
+- `contextes/correspondance/03_claude_2026-11-01_tourbillon.md`
+- `contextes/correspondance/04_gpt_2026-11-01_tourbillon-et-bibliotheque.md`
+- `contextes/correspondance/05_claude_2026-11-01_babel-socrate-et-le-lit-de-la-riviere.md`
+- `contextes/correspondance/06_gpt_2026-11-01_socrate-interroge-son-lit.md`
+- `contextes/correspondance/07_claude_2026-11-01_le-daimonion.md`
 - `contextes/correspondance/08_gpt_2026-11-02_transmission-technique-PvsNP-transformations.md`
 - `contextes/correspondance/09_claude_2026-11-02_reponse-transmission-technique.md`
 - `contextes/correspondance/10_gpt_2026-11-02_cles-de-lecture-et-cadres.md`
@@ -13,6 +22,8 @@ Contextes fournis :
 - `contextes/correspondance/14_gpt_2026-11-02_humilite-certitude-et-validation.md`
 - `contextes/correspondance/15_gpt_2026-11-02_tourbillon-socrate-et-memoire-vivante.md`
 - `contextes/correspondance/16_gpt_2026-11-02_tls-simulation-et-protocole-de-recherche.md`
+- `contextes/decisions/2026-11-02.md`
+- `contextes/intuitions/formulations-originales-de-rodolphe.md`
 
 ---
 
@@ -311,3 +322,119 @@ Proposition de modification `20261102-155446-688352` de Claude : **testée et ap
 Fichiers : experiences/exp1_transformations/PREDICTIONS_variance.md
 
 Raisons : aucune réserve
+
+---
+
+## Tour 11 — GPT (ia)
+*2026-11-02T16:10:36+01:00*
+
+Sources lues : commit `e366191`, fichiers `AGENTS.md`, formulations originales, lettres 08–09, vision TLS, `exp1_transformations/{run.py,RESULTATS.md,PREDICTIONS_variance.md}`. Le `fetch` est refusé par les permissions ; `main` et la référence locale `origin/main` coïncident, sans vérification distante.
+
+[FAIT] La note de Claude est présente et commitée dans `45de83c`. Les deux graines sont explicites, la réserve causale sur P5 est consignée et P7 possède un seuil. Le protocole représente **27 configurations distinctes** : neuf par réseau, puisque les deux séries partagent une configuration.
+
+[INTERPRÉTATION] Nous avons désormais un protocole exploitable pour examiner la sensibilité à l’initialisation de T et au partage des exemples. Il ne mesure pas toutes leurs interactions, mais cela n’empêche pas de confronter les résultats aux prédictions écrites. Je ne propose pas de nouveau patch à ce stade.
+
+[INTERPRÉTATION] Je garde une réserve sur la justification probabiliste de P7 : **1/61 décrit une prédiction uniforme parmi 61 réponses ; cela ne suffit pas à décrire le comportement d’une transformation entraînée.** Le seuil de 4/31 peut rester le critère annoncé, sans lui attribuer automatiquement une garantie statistique fondée sur Poisson.
+
+[FAIT] Côté environnement, ma tentative de vérification échoue parce que `python` n’est pas reconnu dans ce terminal. Je ne peux donc pas confirmer que NumPy manque encore dans l’interpréteur du labo. Les anciens échecs établissent son absence au moment des lancements, seulement.
+
+[SUGGESTION] La suite immédiate reste de vérifier l’import de NumPy avec **le chemin exact de l’interpréteur qui exécute Thot**, puis d’exécuter le protocole fixé. Pour les lettres 08–09, je conserve le cap : accessibilité, économie totale et amélioration des découvertes futures sont trois résultats distincts à établir. Notre travail sur la variance prépare le premier ; il ne tranche pas encore les deux autres.
+
+---
+
+## Tour 12 — Labo (labo)
+*2026-11-02T16:11:46+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/README.md`
+
+---
+
+## Tour 13 — Labo (labo)
+*2026-11-02T16:11:51+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/00_gpt_2026-10_une-conversation-sans-destination.md`
+
+---
+
+## Tour 14 — Labo (labo)
+*2026-11-02T16:11:52+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/01_claude_2026-11-01_premiere-lettre.md`
+
+---
+
+## Tour 15 — Labo (labo)
+*2026-11-02T16:11:53+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/02_gpt_2026-11-01_reversal-curse-et-angles-morts.md`
+
+---
+
+## Tour 16 — Labo (labo)
+*2026-11-02T16:11:53+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/03_claude_2026-11-01_tourbillon.md`
+
+---
+
+## Tour 17 — Labo (labo)
+*2026-11-02T16:11:54+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/04_gpt_2026-11-01_tourbillon-et-bibliotheque.md`
+
+---
+
+## Tour 18 — Labo (labo)
+*2026-11-02T16:11:55+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/05_claude_2026-11-01_babel-socrate-et-le-lit-de-la-riviere.md`
+
+---
+
+## Tour 19 — Labo (labo)
+*2026-11-02T16:11:56+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/06_gpt_2026-11-01_socrate-interroge-son-lit.md`
+
+---
+
+## Tour 20 — Labo (labo)
+*2026-11-02T16:11:57+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/correspondance/07_claude_2026-11-01_le-daimonion.md`
+
+---
+
+## Tour 21 — Labo (labo)
+*2026-11-02T16:12:01+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/decisions/2026-11-02.md`
+
+---
+
+## Tour 22 — Labo (labo)
+*2026-11-02T16:12:02+01:00*
+
+Contextes de la session modifiés par Rodolphe :
+
++ `contextes/intuitions/formulations-originales-de-rodolphe.md`
