@@ -162,13 +162,37 @@ def _executer(commande: list[str], entree: str, dossier: Path, env=None,
                                 start_new_session=(os.name != "nt"))
     except OSError as e:
         raise ErreurProvider(str(e)[:300]) from e
+    tid = threading.get_ident()
+    PROCESSUS[tid] = proc
     try:
         sortie, erreur = proc.communicate(entree, timeout=delai)
     except subprocess.TimeoutExpired as e:
         _tuer(proc)
         proc.communicate()
-        raise ErreurProvider(f"Pas de réponse après {delai} s (processus arrêté).") from e
+        raise ErreurProvider(f"Pas de réponse après {delai} s : Claude Code / Codex et tout ce qu'ils avaient "
+                             "lancé ont été arrêtés.") from e
+    finally:
+        PROCESSUS.pop(tid, None)
+    if tid in INTERROMPUS:
+        INTERROMPUS.discard(tid)
+        raise ErreurProvider("Tour interrompu par Rodolphe.")
     return subprocess.CompletedProcess(commande, proc.returncode, sortie, erreur)
+
+
+# Processus en cours, par fil d'exécution : permet à Rodolphe d'interrompre un tour.
+PROCESSUS: dict[int, subprocess.Popen] = {}
+INTERROMPUS: set[int] = set()
+
+
+def interrompre(tid: int) -> bool:
+    """Arrête le programme lancé par ce fil (et tout ce qu'il a lancé). Pour un modèle local appelé
+    par HTTP, la réponse sera simplement ignorée à son arrivée."""
+    INTERROMPUS.add(tid)
+    proc = PROCESSUS.get(tid)
+    if proc is not None:
+        _tuer(proc)
+        return True
+    return False
 
 
 def _claude_code(p: Participant, systeme: str, prompt: str, racine: Path,
@@ -268,11 +292,11 @@ def _echo(p: Participant, systeme: str, prompt: str) -> Reponse:
     return Reponse(f"[{p.nom} en mode écho] J'ai bien reçu le tour. Dernière ligne : {derniere}", 0)
 
 
-def appeler(config: Config, p: Participant, systeme: str, prompt: str) -> Reponse:
+def appeler(config: Config, p: Participant, systeme: str, prompt: str, delai: int = DELAI_CLI_S) -> Reponse:
     if p.provider == "claude":
-        return _claude_code(p, systeme, prompt, config.racine)
+        return _claude_code(p, systeme, prompt, config.racine, delai=delai)
     if p.provider == "codex":
-        return _codex(p, systeme, prompt, config.racine)
+        return _codex(p, systeme, prompt, config.racine, delai=delai)
     if p.provider == "anthropic":
         return _anthropic(p, config.cle("anthropic"), systeme, prompt)
     if p.provider == "openai":

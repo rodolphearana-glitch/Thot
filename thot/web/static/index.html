@@ -392,7 +392,8 @@ function vueSession(s){
      <span class="quand">réfléchit depuis ${depuis(tec.debut)}</span>
      <div class="contenu">${tec.provider==="claude"||tec.provider==="codex"
        ? "Il peut lire les fichiers du dépôt avant de répondre : quelques minutes, c'est normal (au plus 30 min)."
-       : "Le modèle local génère sa réponse."}</div></div>` : "";
+       : "Le modèle local génère sa réponse."}</div>
+     <p><button class="danger" id="interrompre">Interrompre ce tour</button></p></div>` : "";
   const questions = (s.questions||[]).filter(q=>q.statut==="ouverte").map(q=>`<div class="question">
      <b>❓ Question de ${esc(q.auteur)} pour toi</b> <span class="quand">${esc(q.posee.slice(11,16))}</span>
      <div class="contenu">${rendu(q.texte)}</div>
@@ -429,6 +430,9 @@ function vueSession(s){
   const lier=(id,f)=>{const b=$("#"+id); if(b) b.onclick=f;};
   lier("avancer",()=>pas());
   lier("auto",()=>{auto=!auto; if(auto) boucle(); else vueSession(s);});
+  lier("interrompre",async()=>{ if(!confirm(`Interrompre le tour de ${s.tour_en_cours.participant} ? La session passera en pause.`)) return;
+    try{ await api(`/api/sessions/${s.id}/interrompre`,{}); }catch(e){ alert(e.message); }
+    setTimeout(async()=>vueSession(await api(`/api/sessions/${s.id}`)), 1500); });
   lier("pause",()=>etat("pause")); lier("reprendre",()=>etat("en_cours")); lier("clore",()=>{ if(confirm("Fermer cette session ? Elle passera dans « Terminées » et pourra être rouverte.")) etat("terminee"); });
   lier("plus",async()=>{ nbTours = Math.max(1, +$("#nb-tours").value || 2);
     try{ localStorage.setItem("thot-nb-tours", String(nbTours)); }catch(e){}

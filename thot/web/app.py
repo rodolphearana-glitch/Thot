@@ -82,7 +82,9 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
             "synchro": labo.synchro.etat if labo.synchro else None,
             "observations": labo.observatoire.liste_observations(),
             "questions": labo.questions_ouvertes(),
-            "sessions": [x | {"tour_en_cours": labo.en_cours.get(x["id"])} for x in labo.journal.lister()],
+            "sessions": [x | {"tour_en_cours": ({k: v for k, v in labo.en_cours[x["id"]].items()
+                                                 if not k.startswith("_")} if x["id"] in labo.en_cours else None)}
+                         for x in labo.journal.lister()],
             "automaj": [{k: r.get(k) for k in ("id", "auteur", "statut", "fichiers", "raisons",
                                                 "justification", "propose", "commit",
                                                 "redemarrage_conseille")}
@@ -139,6 +141,10 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
     @app.post("/api/sessions/{ident}/participants")
     def participants(ident: str, p: Participants):
         return _protege(labo.changer_participants, ident, p.participants)
+
+    @app.post("/api/sessions/{ident}/interrompre")
+    def interrompre(ident: str):
+        return _protege(labo.interrompre, ident)
 
     @app.post("/api/sessions/{ident}/questions/{numero}")
     def repondre(ident: str, numero: int, r: Reponse):

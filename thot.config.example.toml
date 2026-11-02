@@ -112,6 +112,8 @@ branche = "main"
 [contexte]
 # Taille maximale (en caractères) du contexte envoyé à chaque tour.
 max_caracteres = 120000
+# Durée maximale d'un tour de Claude Code / Codex ; au-delà, il est arrêté et la session passe en pause.
+duree_max_tour_s = 900
 
 # ---------------------------------------------------------------------------
 # Clés d'API : seulement pour les providers "anthropic" et "openai". Inutiles sinon.

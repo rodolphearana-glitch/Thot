@@ -158,8 +158,18 @@ class Labo:
     def lire(self, ident: str) -> dict:
         """La session, avec le tour en cours s'il y en a un (qui parle, depuis quand)."""
         s = self.journal.lire(ident)
-        s["tour_en_cours"] = self.en_cours.get(ident)
+        tec = self.en_cours.get(ident)
+        s["tour_en_cours"] = {k: v for k, v in tec.items() if not k.startswith("_")} if tec else None
         return s
+
+    def interrompre(self, ident: str) -> dict:
+        """Arrête le tour en cours de cette session ; la session passe en pause, rien n'est écrit au fil
+        à part la mention de l'interruption."""
+        tec = self.en_cours.get(ident)
+        if not tec:
+            raise ValueError("Aucun tour en cours dans cette session.")
+        providers.interrompre(tec["_fil"])
+        return self.lire(ident)
 
     def _avancer(self, ident: str) -> dict:
         with self._verrou(ident):
@@ -172,17 +182,25 @@ class Labo:
                 return self.journal.lire(ident)
             nom = s["participants"][s["prochain"] % len(s["participants"])]
             p = self.config.participant(nom)
-            self.en_cours[ident] = {"participant": nom, "provider": p.provider, "debut": maintenant()}
+            self.en_cours[ident] = {"participant": nom, "provider": p.provider, "debut": maintenant(),
+                                    "_fil": threading.get_ident()}
             prompt = self.construire_prompt(s, nom)
             systeme = self.charte()
             if s.get("genre") == "observation":
                 systeme += "\n\n# Cette session est une OBSERVATION\n\n" + CONSIGNE_OBSERVATION + (
                     "\nVous êtes plusieurs analystes : répondez-vous, contestez les observations des autres "
                     "quand elles ne tiennent pas, et ne répétez pas ce qui a déjà été dit. À la clôture, "
-                    "toute la discussion devient un rapport dans journal/observations/.")
+                    "toute la discussion devient un rapport dans journal/observations/.\n\n"
+                    "IMPORTANT : les journaux à analyser sont DÉJÀ dans ce message. N'ouvre aucun fichier du "
+                    "dépôt (ni code, ni journal, ni contexte) : ton analyse porte sur ce qui t'est fourni, "
+                    "et tes sources sont les numéros de tours cités ici. Réponds directement.")
             try:
                 self.budget.verifier(p.provider)
-                rep = providers.appeler(self.config, p, systeme, prompt)
+                rep = providers.appeler(self.config, p, systeme, prompt,
+                                        int(self.config.contexte.get("duree_max_tour_s", 900)))
+                if threading.get_ident() in providers.INTERROMPUS:   # modèle local : réponse arrivée trop tard
+                    providers.INTERROMPUS.discard(threading.get_ident())
+                    raise providers.ErreurProvider("Tour interrompu par Rodolphe.")
             except providers.AttenteRelais:
                 s["etat"] = "attente_relais"
                 s["relais"] = {"participant": nom, "texte": f"{systeme}\n\n---\n\n{prompt}"}

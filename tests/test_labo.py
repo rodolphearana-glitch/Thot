@@ -115,3 +115,38 @@ def test_question_pour_rodolphe(config):
     import pytest
     with pytest.raises(ValueError):
         labo.repondre_question(s["id"], 1, "encore")
+
+
+def test_interrompre_un_tour(config, tmp_path, monkeypatch):
+    """Un tour trop long s'interrompt : le programme est arrêté, la session passe en pause."""
+    import os
+    import stat
+    import sys
+    import threading
+    import time
+    if os.name == "nt":
+        import pytest
+        pytest.skip("faux exécutable en script Unix")
+    from thot.config import Participant
+    bin_ = tmp_path / "bin"
+    bin_.mkdir()
+    lent = bin_ / "claude"
+    lent.write_text(f"#!{sys.executable}\nimport time\ntime.sleep(60)\n")
+    lent.chmod(lent.stat().st_mode | stat.S_IEXEC)
+    monkeypatch.setenv("PATH", str(bin_) + os.pathsep + os.environ["PATH"])
+    config.participants.append(Participant("Lent", "claude"))
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["Lent"], 2, [])
+    fil = threading.Thread(target=labo.avancer, args=(s["id"],))
+    fil.start()
+    for _ in range(50):
+        if s["id"] in labo.en_cours and labo.en_cours[s["id"]]["_fil"] in __import__("thot.providers", fromlist=["x"]).PROCESSUS:
+            break
+        time.sleep(0.1)
+    debut = time.time()
+    labo.interrompre(s["id"])
+    fil.join(10)
+    assert not fil.is_alive() and time.time() - debut < 10
+    lu = labo.lire(s["id"])
+    assert lu["etat"] == "pause" and "interrompu" in lu["erreurs"][-1]["erreur"].lower()
+    assert lu["tours"] == [] and lu["tour_en_cours"] is None
