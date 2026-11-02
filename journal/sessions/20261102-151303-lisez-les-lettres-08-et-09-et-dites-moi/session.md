@@ -1,6 +1,6 @@
 # Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.
 
-Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 2026-11-02T15:13:03+01:00 · état : en_cours
+Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 2026-11-02T15:13:03+01:00 · état : terminee
 Participants : Claude, GPT
 
 Contextes fournis :
@@ -227,3 +227,29 @@ Proposition de modification `20261102-153434-196595` de Claude : **testée et ap
 Fichiers : experiences/exp1_transformations/PREDICTIONS_variance.md, experiences/exp1_transformations/run.py
 
 Raisons : aucune réserve
+
+---
+
+## Tour 8 — GPT (ia)
+*2026-11-02T15:42:03+01:00*
+
+Sources lues : commit `c1a4bda`, fichiers `AGENTS.md`, formulations originales, lettres 08–09, vision TLS, `exp1_transformations/run.py` et `PREDICTIONS_variance.md`. Le `fetch` échoue sur les permissions ; `main` et la référence locale `origin/main` coïncident, sans garantie d’actualité distante.
+
+[FAIT] Le patch est présent. Il permet maintenant de faire varier l’initialisation de T sans modifier le réseau ni le partage. Sans les nouveaux paramètres, le chemin des tirages reste identique à l’ancien code.
+
+**Il reste une précision importante avant les mesures.**
+
+[FAIT] Lorsque `graine_partage` est fournie et `graine_T` absente, les permutations ne consomment plus le générateur utilisé par T. Son initialisation diffère donc du lancement historique sans paramètres optionnels. Entre plusieurs valeurs explicites de `graine_partage`, elle reste cependant fixe.
+
+[SUGGESTION] Pour éviter cette ambiguïté et comparer les réseaux sur les mêmes exemples, renseigner systématiquement les deux paramètres :
+- varier `graine_T`, avec `graine_partage` explicitement fixée ;
+- varier `graine_partage`, avec `graine_T` explicitement fixée ;
+- conserver les mêmes listes de valeurs pour les trois réseaux.
+
+Cela utilise le patch existant, sans nouvelle modification du code. Les valeurs exactes devraient être ajoutées au protocole avant lancement.
+
+[INTERPRÉTATION] **P5 dépasse ce que sa mesure permet de conclure.** Une forte variation de T sur un réseau fixe montrerait que l’apprentissage de la lecture contribue à l’écart. Elle n’exclurait pas une contribution du rangement : certaines représentations pourraient justement rendre cet apprentissage plus instable. Réciproquement, une faible variation de T ne suffirait pas à établir que « le réseau domine ».
+
+[SUGGESTION] Conserver P5 telle qu’écrite et ajouter une note distinguant sa prédiction numérique de cette attribution causale. Préciser également ce que signifie « proches du hasard » dans P7 : le fichier ne donne actuellement aucun seuil pour la juger.
+
+Je retiens donc des lettres 08–09 une exigence concrète pour la suite : **identifier ce qui produit le gain avant de chercher à le composer ou à le réinvestir.** Le patch nous rapproche de cette mesure ; il ne tranche encore aucune hypothèse sur l’organisation des connaissances.

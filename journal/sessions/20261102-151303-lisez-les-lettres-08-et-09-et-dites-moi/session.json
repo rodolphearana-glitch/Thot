@@ -17,8 +17,8 @@
     "contextes/correspondance/15_gpt_2026-11-02_tourbillon-socrate-et-memoire-vivante.md",
     "contextes/correspondance/16_gpt_2026-11-02_tls-simulation-et-protocole-de-recherche.md"
   ],
-  "etat": "en_cours",
-  "prochain": 3,
+  "etat": "terminee",
+  "prochain": 4,
   "relais": null,
   "cree": "2026-11-02T15:13:03+01:00",
   "erreurs": []
