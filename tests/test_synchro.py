@@ -4,6 +4,19 @@ import subprocess
 from thot.synchro import Synchro
 
 
+def effacer(dossier):
+    """rmtree qui marche aussi sous Windows, où Git met ses fichiers en lecture seule."""
+    import os
+    import shutil
+    import stat
+
+    def deverrouiller(fonction, chemin, _info):
+        os.chmod(chemin, stat.S_IWRITE)
+        fonction(chemin)
+
+    shutil.rmtree(dossier, onerror=deverrouiller)
+
+
 def git(cwd, *args):
     return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()
 
@@ -74,8 +87,7 @@ def test_dossier_venu_d_un_zip(depot, tmp_path):
     git(autre, "add", "-A"); git(autre, "commit", "-q", "-m", "nouvelle"); git(autre, "push", "-q")
     zip_ = tmp_path / "zip"
     subprocess.run(["git", "clone", "-q", str(distant), str(zip_)], check=True)
-    import shutil
-    shutil.rmtree(zip_ / ".git")
+    effacer(zip_ / ".git")
     (zip_ / "contextes" / "nouvelle.md").unlink()          # ZIP un peu plus ancien
     (zip_ / "journal" / "sessions" / "s1").mkdir(parents=True)
     (zip_ / "journal" / "sessions" / "s1" / "session.md").write_text("session locale\n")
