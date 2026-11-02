@@ -240,6 +240,35 @@ class Labo:
                                       + "\n".join(lignes), "labo")
             return self.journal.lire(ident)
 
+    def changer_participants(self, ident: str, participants: list[str]) -> dict:
+        """Ajoute, retire ou réordonne les participants d'une session en cours (discussion ou observation)."""
+        if not participants:
+            raise ValueError("Il faut au moins un participant.")
+        for p in participants:
+            self.config.participant(p)  # lève si inconnu
+        if len(set(participants)) != len(participants):
+            raise ValueError("Un participant figure deux fois.")
+        with self._verrou(ident):
+            s = self.journal.lire(ident)
+            avant = s["participants"]
+            if participants == avant:
+                return s
+            # Le tour de parole reprend après le dernier qui a parlé, s'il est toujours là.
+            derniers = [t["auteur"] for t in s["tours"] if t.get("type") in ("ia", "relais")]
+            if derniers and derniers[-1] in participants:
+                s["prochain"] = participants.index(derniers[-1]) + 1
+            else:
+                s["prochain"] = s.get("prochain", 0) % len(participants)
+            s["participants"] = list(participants)
+            if s.get("etat") == "attente_relais" and s.get("relais", {}).get("participant") not in participants:
+                s["relais"], s["etat"] = None, "en_cours"
+            self.journal.sauver(s)
+            lignes = ([f"+ {n}" for n in participants if n not in avant] + [f"− {n}" for n in avant if n not in participants])
+            self.journal.ajouter_tour(ident, "Labo", "Participants modifiés par Rodolphe :\n\n" + "\n".join(lignes)
+                                      + f"\n\nOrdre de parole : {', '.join(participants)}.", "labo",
+                                      evenement={"genre": "participants_modifies", "avant": avant, "apres": participants})
+            return self.journal.lire(ident)
+
     def ajouter_tours(self, ident: str, n: int) -> dict:
         with self._verrou(ident):
             s = self.journal.lire(ident)

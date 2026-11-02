@@ -111,8 +111,15 @@ main.droite-repliee .bande{display:flex}
 <main>
 <aside class="gauche">
   <details class="bloc" id="bloc-courante" data-cle="courante" open>
-    <summary>Contextes de la session ouverte</summary>
-    <div id="contextes-courante" class="cases"><span class="vide">Aucune session ouverte.</span></div>
+    <summary>Session ouverte</summary>
+    <details class="sous-bloc" data-cle="courante-participants" open>
+      <summary>Participants</summary>
+      <div id="participants-courante" class="cases"><span class="vide">Aucune session ouverte.</span></div>
+    </details>
+    <details class="sous-bloc" data-cle="courante-contextes" open>
+      <summary>Contextes</summary>
+      <div id="contextes-courante" class="cases"><span class="vide">Aucune session ouverte.</span></div>
+    </details>
   </details>
 
   <details class="bloc" data-cle="sessions" open>
@@ -210,7 +217,7 @@ main.droite-repliee .bande{display:flex}
 
 <script>
 const $ = s => document.querySelector(s);
-let courante = null, auto = false, version = null, contextesDispo = [], derniere = null, nbTours = 2;
+let courante = null, auto = false, version = null, contextesDispo = [], derniere = null, nbTours = 2, participantsDispo = [];
 try{ nbTours = Math.max(1, +localStorage.getItem("thot-nb-tours") || 2); }catch(e){}
 
 function esc(t){return (t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -268,8 +275,9 @@ async function chargerEtat(){
   $("#sessions-terminees").innerHTML = finies.map(ligne).join("") || '<li class="vide">aucune</li>';
   $("#nb-en-cours").textContent = `(${enCours.length})`; $("#nb-terminees").textContent = `(${finies.length})`;
   document.querySelectorAll(".liste-session li[data-id]").forEach(li=>li.onclick=()=>ouvrir(li.dataset.id));
+  participantsDispo = e.participants;
   const avant = contextesDispo.length; contextesDispo = e.contextes;
-  if(derniere && !avant) vueContextes(derniere);
+  if(derniere && !avant){ vueContextes(derniere); vueParticipants(derniere); }
   const b = e.budget;
   if(!$("#obs-participants").dataset.fait){
     $("#obs-participants").innerHTML = e.participants.filter(p=>p.provider!=="manuel")
@@ -320,6 +328,20 @@ async function chargerEtat(){
   });
 }
 
+function vueParticipants(s){
+  const dans = s.participants||[];
+  const autres = participantsDispo.map(p=>p.nom).filter(n=>!dans.includes(n));
+  $("#participants-courante").innerHTML =
+    dans.map((n,i)=>`<label><input type="checkbox" value="${esc(n)}" checked> ${i+1}. ${esc(n)}</label>`).join("")
+    + autres.map(n=>`<label><input type="checkbox" value="${esc(n)}"> ${esc(n)}</label>`).join("")
+    + `<div class="ajout-contexte">Cocher ajoute un participant à la fin du tour de parole ; décocher le retire. Il prend la parole dès le tour suivant.</div>`;
+  $("#participants-courante").querySelectorAll("input").forEach(i=>i.onchange=async()=>{
+    const liste = dans.filter(n=>n!==i.value || i.checked);
+    if(i.checked && !liste.includes(i.value)) liste.push(i.value);
+    if(!liste.length){ i.checked = true; return alert("Il faut au moins un participant."); }
+    try{ vueSession(await api(`/api/sessions/${s.id}/participants`,{participants:liste})); }catch(err){ alert(err.message); }
+  });
+}
 function vueContextes(s){
   const sources = (s.genre==="observation" && (s.sources||[]).length)
     ? `<div class="ajout-contexte"><b>Observation</b> — sessions observées (lecture seule) :<br>${s.sources.map(x=>esc(x)).join("<br>")}</div>` : "";
@@ -333,7 +355,7 @@ function vueContextes(s){
   });
 }
 function vueSession(s){
-  derniere = s; vueContextes(s);
+  derniere = s; vueContextes(s); vueParticipants(s);
   const relais = s.etat==="attente_relais" && s.relais ? `<div class="relais">
      <b>Relais manuel : c'est le tour de ${esc(s.relais.participant)}.</b>
      <p>Copie ce message, donne-le à ${esc(s.relais.participant)}, puis colle sa réponse.</p>

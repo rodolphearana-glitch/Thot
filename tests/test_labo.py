@@ -69,3 +69,23 @@ def test_changer_contextes(config):
     assert s["contextes"] == ["contextes/b.md"]
     assert "+ `contextes/b.md`" in s["tours"][-1]["texte"] and "− `contextes/a.md`" in s["tours"][-1]["texte"]
     assert "B" in labo.construire_prompt(labo.journal.lire(s["id"]), "A")
+
+
+def test_changer_participants_en_cours(config):
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["A"], 6, [])
+    labo.avancer(s["id"])                                  # A parle
+    s = labo.changer_participants(s["id"], ["A", "B"])     # on ajoute B
+    assert "+ B" in s["tours"][-1]["texte"]
+    s = labo.avancer(s["id"])
+    assert s["tours"][-1]["auteur"] == "B"                 # B parle juste après A
+    s = labo.avancer(s["id"])
+    assert s["tours"][-1]["auteur"] == "A"
+    s = labo.changer_participants(s["id"], ["B"])          # on retire A
+    s = labo.avancer(s["id"])
+    assert s["tours"][-1]["auteur"] == "B" and "− A" in s["tours"][-2]["texte"]
+    import pytest
+    with pytest.raises(ValueError):
+        labo.changer_participants(s["id"], [])
+    with pytest.raises(KeyError):
+        labo.changer_participants(s["id"], ["Inconnu"])
