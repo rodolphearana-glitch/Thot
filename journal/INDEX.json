@@ -41,6 +41,7 @@
         "lisible": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.md",
         "tours": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/tours.jsonl"
       },
+      "genre": "discussion",
       "id": "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi",
       "modifications_proposees": 2,
       "participants": [
@@ -48,6 +49,8 @@
         "GPT"
       ],
       "recadrages": 2,
+      "relances": 0,
+      "sources": [],
       "sujet": "Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.",
       "tours": 26,
       "tours_ia": 8
@@ -64,6 +67,7 @@
         "lisible": "sessions/20261102-154840-amelioration-interface-labo/session.md",
         "tours": "sessions/20261102-154840-amelioration-interface-labo/tours.jsonl"
       },
+      "genre": "discussion",
       "id": "20261102-154840-amelioration-interface-labo",
       "modifications_proposees": 1,
       "participants": [
@@ -71,6 +75,8 @@
         "GPT"
       ],
       "recadrages": 0,
+      "relances": 0,
+      "sources": [],
       "sujet": "amélioration interface labo",
       "tours": 3,
       "tours_ia": 1
