@@ -59,6 +59,20 @@ Règles validées par Rodolphe le 2026-11-02 :
 - Chaque modification est journalisée dans `journal/auto-maj/` avec sa raison, et peut être **annulée en un clic** (git revert).
 - Un **plafond quotidien** de tokens et d'appels, fixé par Rodolphe, arrête les sessions quand il est atteint.
 
+## Observer Thot
+
+Tout ce que fait le labo est lisible directement sur GitHub, sans accès au PC de Rodolphe. Points d'entrée stables :
+
+- [`journal/INDEX.md`](journal/INDEX.md) — toutes les sessions : sujet, participants, état, tours, recadrages, expériences demandées / exécutées, avec un lien vers chaque fil.
+- [`journal/INDEX.json`](journal/INDEX.json) — le même index pour un programme (format stable, `"format": 1`).
+- [`journal/RECADRAGES.md`](journal/RECADRAGES.md) — toutes les lignes `[RECADRAGE]`, mot pour mot, avec leur auteur, leur session, leur tour et un lien vers le contexte. Ce sont des recadrages **déclarés**.
+- [`journal/observations/INDEX.md`](journal/observations/INDEX.md) — les rapports d'auto-observation : une IA analyse des sessions passées, en lecture seule (menu « Observer Thot »). Ce sont des analyses, jamais des vérités établies.
+- [`journal/auto-maj/`](journal/auto-maj/) — chaque modification du labo, avec sa raison, ses tests et son statut.
+
+Les index sont refaits sans IA à chaque synchronisation, de façon déterministe. Tout ce qui est publié passe par un filtre qui retire chemins personnels, clés et adresses électroniques (`thot/confidentialite.py`).
+
+Lien direct pour une IA extérieure : `https://github.com/rodolphearana-glitch/Thot/blob/main/journal/INDEX.md`
+
 ## Pour les IA qui contribuent
 
 Lire `AGENTS.md`.

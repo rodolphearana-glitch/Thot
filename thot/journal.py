@@ -14,6 +14,8 @@ import unicodedata
 from datetime import datetime
 from pathlib import Path
 
+from .confidentialite import masquer
+
 _verrou = threading.Lock()
 
 RE_RECADRAGE = re.compile(r"^\s*\[RECADRAGE\]\s*(.+)$", re.MULTILINE)
@@ -37,6 +39,7 @@ class Journal:
     # -- sessions -----------------------------------------------------------
     def creer(self, sujet: str, participants: list[str], tours_max: int,
               contextes: list[str]) -> dict:
+        sujet = masquer(sujet)  # le sujet donne aussi son nom au dossier, publié sur GitHub
         base = datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + _slug(sujet)
         ident, n = base, 2
         while (self.dossier / ident).exists():
@@ -91,6 +94,7 @@ class Journal:
 
     def ajouter_tour(self, ident: str, auteur: str, texte: str, type_: str,
                      **extra) -> dict:
+        texte = masquer(texte)  # le dépôt est public
         with _verrou:
             n = len(self.tours(ident))
             tour = {
@@ -123,7 +127,7 @@ class Journal:
         for t in self.tours(ident):
             lignes += ["---", "", f"## Tour {t['n']} — {t['auteur']} ({t['type']})",
                        f"*{t['horodatage']}*", "", t["texte"], ""]
-        (d / "session.md").write_text("\n".join(lignes), encoding="utf-8")
+        (d / "session.md").write_text(masquer("\n".join(lignes)), encoding="utf-8")
 
     def _dossier(self, ident: str) -> Path:
         if not re.fullmatch(r"[A-Za-z0-9\-]+", ident):

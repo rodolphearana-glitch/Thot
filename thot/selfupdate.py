@@ -24,6 +24,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
+from .confidentialite import masquer
 from .journal import maintenant
 
 _verrou = threading.Lock()
@@ -33,6 +34,7 @@ PROTEGES = [
     "thot/selfupdate.py",
     "thot/synchro.py",
     "thot/codage.py",
+    "thot/confidentialite.py",
     "thot/__main__.py",
     "thot/budget.py",
     "thot/config.py",
@@ -134,6 +136,9 @@ class AutoMaj:
         return json.loads((self.dossier / f"{ident}.json").read_text(encoding="utf-8"))
 
     def _sauver(self, rec: dict) -> None:
+        for champ in ("tests", "erreur", "justification"):
+            if rec.get(champ):
+                rec[champ] = masquer(rec[champ])
         (self.dossier / f"{rec['id']}.json").write_text(
             json.dumps(rec, ensure_ascii=False, indent=2), encoding="utf-8"
         )

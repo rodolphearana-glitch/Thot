@@ -12,6 +12,8 @@ from pathlib import Path
 from . import providers
 from .budget import Budget, BudgetDepasse
 from .codage import Codage
+from .confidentialite import masquer
+from .observatoire import CONSIGNE_OBSERVATION, Observatoire
 from .config import Config
 from .journal import Journal, maintenant
 from .selfupdate import AutoMaj, extraire_blocs
@@ -27,6 +29,8 @@ class Labo:
         self.budget = Budget(config.budget, self.racine / ".thot")
         self.automaj = AutoMaj(self.racine, config.auto_maj)
         self.codage = Codage(config, self.automaj)
+        self.observatoire = Observatoire(self.racine)
+        self.observation_en_cours: dict | None = None
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self._verrou_actifs = threading.Lock()
@@ -132,7 +136,7 @@ class Labo:
                 return s
             except (BudgetDepasse, providers.ErreurProvider) as e:
                 s["etat"] = "pause"
-                s["erreurs"].append({"quand": maintenant(), "participant": nom, "erreur": str(e)})
+                s["erreurs"].append({"quand": maintenant(), "participant": nom, "erreur": masquer(str(e))})
                 self.journal.sauver(s)
                 return s
             self.budget.enregistrer(p.provider, rep.tokens)
@@ -228,7 +232,9 @@ class Labo:
                 msg += f"\n\nErreur : {rec['erreur']}"
             if rec["statut"] == "rejete_tests" and rec.get("tests"):
                 msg += "\n\nSortie des tests (fin) :\n\n```\n" + rec["tests"][-1500:] + "\n```"
-            self.journal.ajouter_tour(ident, "Labo", msg, "labo", automaj=rec["id"])
+            self.journal.ajouter_tour(ident, "Labo", msg, "labo", automaj=rec["id"],
+                                      evenement={"genre": "modification_traitee", "id": rec["id"],
+                                                 "statut": rec["statut"], "par": "thot-patch"})
 
     def _lancer_codage(self, s: dict, auteur: str, consigne: str) -> None:
         ident = s["id"]
@@ -285,9 +291,45 @@ class Labo:
                 self.journal.ajouter_tour(
                     ident, "Labo", f"Changement `{rec['id']}` issu du codage : **{etat}**.\n\nFichiers : "
                     f"{', '.join(rec['fichiers'])}\n\nRaisons : {'; '.join(rec.get('raisons', [])) or 'aucune réserve'}",
-                    "labo", automaj=rec["id"])
+                    "labo", automaj=rec["id"], evenement={"genre": "modification_traitee", "id": rec["id"],
+                                                          "statut": rec["statut"], "par": "thot-codage"})
         except Exception as e:  # un codage raté ne doit pas faire tomber le labo
             self.journal.ajouter_tour(ident, "Labo", f"Le codage s'est arrêté sur une erreur : {e}", "labo")
+        finally:
+            self._fin()
+
+    # -- auto-observation ---------------------------------------------------------------
+    def observer(self, participant: str, sessions: list[str]) -> dict:
+        """Lance UNE analyse de sessions passées, en arrière-plan. Jamais automatique, jamais récursive :
+        une seule observation à la fois, comptée dans le budget, sur des journaux lus sans modification."""
+        if self.observation_en_cours:
+            raise RuntimeError("Une observation est déjà en cours.")
+        p = self.config.participant(participant)
+        connues = {r["id"] for r in self.observatoire.resumes()}
+        sessions = [s for s in sessions if s in connues] or sorted(connues)
+        if not sessions:
+            raise ValueError("Aucune session à observer.")
+        self.budget.verifier(p.provider)
+        self.observation_en_cours = {"participant": participant, "sessions": sessions, "debut": maintenant()}
+        self._debut()
+        threading.Thread(target=self._executer_observation, args=(p, sessions), daemon=True).start()
+        return dict(self.observation_en_cours)
+
+    def _executer_observation(self, p, sessions) -> None:
+        try:
+            maxc = int(self.config.contexte.get("max_caracteres", 120000))
+            par_session = max(8000, maxc // max(1, len(sessions)))
+            prompt = "# Sessions à analyser\n\n" + "\n\n".join(
+                self.observatoire.export_session(s, par_session) for s in sessions)
+            rep = providers.appeler(self.config, p, CONSIGNE_OBSERVATION, prompt)
+            self.budget.enregistrer(p.provider, rep.tokens)
+            chemin = self.observatoire.ecrire_observation(p.nom, p.modele, sessions, CONSIGNE_OBSERVATION, rep.texte)
+            self.observatoire.generer_index()
+            self.observation_en_cours = None
+            self.derniere_observation = {"fichier": chemin.name, "erreur": ""}
+        except Exception as e:
+            self.observation_en_cours = None
+            self.derniere_observation = {"fichier": "", "erreur": str(e)[:500]}
         finally:
             self._fin()
 
@@ -328,7 +370,8 @@ class Labo:
             return
         self.journal.ajouter_tour(
             ident, "Labo", f"Expérience `{nom}` lancée à la demande de {demandeur}, "
-            f"paramètres {json.dumps(params)}. Le résultat arrivera dans un tour suivant.", "labo")
+            f"paramètres {json.dumps(params)}. Le résultat arrivera dans un tour suivant.", "labo",
+            evenement={"genre": "experience_lancee", "nom": nom, "demandeur": demandeur, "parametres": params})
         self._debut()
         threading.Thread(target=self._executer_experience,
                          args=(ident, demandeur, nom, params, script), daemon=True).start()
@@ -360,4 +403,5 @@ class Labo:
             ident, "Labo",
             f"Résultat de l'expérience `{nom}` ({'réussie' if ok else 'en échec'}), "
             f"enregistré dans experiences/{nom}/resultats/{horo}.json :\n\n```\n{sortie}\n```",
-            "labo")
+            "labo", evenement={"genre": "experience_resultat", "nom": nom, "reussie": ok, "parametres": params,
+                               "fichier": f"experiences/{nom}/resultats/{horo}.json"})

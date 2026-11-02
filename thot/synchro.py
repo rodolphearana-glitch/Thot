@@ -22,6 +22,7 @@ import time
 from pathlib import Path
 
 from .journal import maintenant
+from .observatoire import Observatoire
 from .selfupdate import _verrou as verrou_git
 
 CODE_REDEMARRAGE = 3
@@ -136,6 +137,10 @@ class Synchro:
             pass
 
     def _verser(self) -> bool:
+        try:
+            Observatoire(self.racine).generer_index()  # index et recadrages, sans IA
+        except Exception as e:  # l'index ne doit jamais bloquer la synchro
+            self.etat["erreur_index"] = str(e)[:300]
         chemins = [c for c in ("journal", "experiences") if (self.racine / c).exists()]
         if chemins:
             self._git("add", "-A", "--", *chemins)

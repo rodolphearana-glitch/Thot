@@ -70,7 +70,10 @@ def test_code_casse_refuse(depot, tmp_path):
     avant = git(depot, "rev-parse", "HEAD")
     etat = Synchro(depot, {"active": True}).passage()
     assert "refusée" in etat["erreur"]
-    assert git(depot, "rev-parse", "HEAD") == avant
+    # Le journal (index régénéré) peut avoir été versé, mais la version cassée n'est pas installée.
+    distant_tete = git(autre, "rev-parse", "HEAD")
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", distant_tete, "HEAD"], cwd=depot).returncode != 0
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", avant, "HEAD"], cwd=depot).returncode == 0
     assert not (depot / "thot" / "casse.py").exists()
 
 

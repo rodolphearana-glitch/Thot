@@ -83,6 +83,8 @@ details>summary::-webkit-details-marker{display:none}
 details>summary::before{content:"▸ ";display:inline-block;width:1em;color:var(--ocre)}
 details[open]>summary::before{content:"▾ "}
 .compte{color:var(--encre-2);font-size:12px}
+.aide-obs{font-size:13px;color:var(--encre-2);margin:4px 0 8px}
+select{font:inherit;color:var(--encre);background:var(--carte);border:1px solid var(--trait);border-radius:6px;padding:4px 6px;margin-left:6px}
 aside.droite{position:relative}
 .replier{position:absolute;top:10px;right:10px;padding:2px 9px;background:transparent;color:var(--encre-2);border-color:var(--trait);z-index:2}
 .bande{display:none;cursor:pointer;height:100%;flex-direction:column;align-items:center;gap:12px;padding-top:6px;color:var(--encre-2)}
@@ -135,6 +137,20 @@ main.droite-repliee .bande{display:flex}
       <div id="contextes" class="cases"></div>
     </details>
     <p><button id="creer">Ouvrir la session</button></p>
+  </details>
+
+  <details class="bloc" data-cle="observer">
+    <summary>Observer Thot</summary>
+    <p class="aide-obs">Une IA analyse des sessions passées, en lecture seule : répétitions, contradictions,
+      recadrages, prédictions et résultats. Le rapport s'ajoute à <code>journal/observations/</code>.</p>
+    <label>Analyste <select id="obs-participant"></select></label>
+    <label class="cases"><input type="checkbox" id="obs-courante" checked> seulement la session ouverte</label>
+    <p><button class="second" id="obs-lancer">Lancer une observation</button></p>
+    <div id="obs-etat" class="vide"></div>
+    <details class="sous-bloc" data-cle="obs-rapports" open>
+      <summary>Rapports <span id="nb-obs" class="compte"></span></summary>
+      <ul id="obs-liste" class="liste-session"></ul>
+    </details>
   </details>
 
   <details class="bloc" data-cle="etat">
@@ -230,6 +246,25 @@ async function chargerEtat(){
   const avant = contextesDispo.length; contextesDispo = e.contextes;
   if(derniere && !avant) vueContextes(derniere);
   const b = e.budget;
+  const sel = $("#obs-participant");
+  if(!sel.dataset.fait){
+    sel.innerHTML = e.participants.filter(p=>!["manuel","echo"].includes(p.provider))
+      .map(p=>`<option value="${esc(p.nom)}">${esc(p.nom)}</option>`).join("");
+    sel.dataset.fait = 1;
+  }
+  $("#obs-liste").innerHTML = (e.observations||[]).slice().reverse()
+    .map(o=>`<li data-obs="${esc(o.fichier)}">${esc(o.titre)}</li>`).join("") || '<li class="vide">aucun</li>';
+  $("#nb-obs").textContent = `(${(e.observations||[]).length})`;
+  document.querySelectorAll("#obs-liste li[data-obs]").forEach(li=>li.onclick=async()=>{
+    const r = await api(`/api/observations/${li.dataset.obs}`);
+    $("#centre").innerHTML = `<div id="fil"><p><button class="second" id="retour">← Retour</button></p>
+      <div class="tour labo"><div class="contenu">${rendu(r.texte)}</div></div></div>`;
+    $("#retour").onclick=()=>courante?ouvrir(courante):($("#centre").innerHTML="");
+  });
+  const oc = e.observation_en_cours, dob = e.derniere_observation;
+  $("#obs-etat").innerHTML = oc ? `Observation en cours par ${esc(oc.participant)} (${oc.sessions.length} session(s))…`
+    : (dob && dob.erreur ? `<span class="erreur">${esc(dob.erreur)}</span>` : "");
+  $("#obs-lancer").disabled = !!oc;
   $("#budget").innerHTML = `${b.appels} / ${b.plafonds.appels_par_jour} appels<br>` +
     Object.entries(b.tokens||{}).map(([k,v])=>`${esc(k)} : ${v.toLocaleString("fr")} tokens`).join("<br>");
   const carte = r=>`<div class="carte-maj">
@@ -351,6 +386,13 @@ $("#creer").onclick = async()=>{
   const contextes=[...document.querySelectorAll("#contextes input:checked")].map(i=>i.value);
   try{ const s=await api("/api/sessions",{sujet,participants,contextes,tours_max:+$("#tours").value||6});
        $("#sujet").value=""; ouvrir(s.id); }catch(e){ alert(e.message); }
+};
+$("#obs-lancer").onclick = async()=>{
+  const participant = $("#obs-participant").value; if(!participant) return;
+  const sessions = $("#obs-courante").checked && courante ? [courante] : [];
+  if(!confirm(`Lancer une observation par ${participant} sur ${sessions.length ? "la session ouverte" : "toutes les sessions"} ? Elle compte dans le budget du jour.`)) return;
+  try{ await api("/api/observer",{participant,sessions}); }catch(e){ alert(e.message); }
+  chargerEtat();
 };
 $("#synchroniser").onclick = async()=>{ const b=$("#synchroniser"); b.disabled=true; b.textContent="…";
   try{ await api("/api/synchro",{}); }catch(e){ alert(e.message); }

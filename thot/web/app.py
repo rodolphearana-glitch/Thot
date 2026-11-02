@@ -4,6 +4,7 @@ Fichier protégé : il expose les actions sensibles (approbation des modificatio
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -34,6 +35,11 @@ class Etat(BaseModel):
 
 class Contextes(BaseModel):
     contextes: list[str]
+
+
+class Observation(BaseModel):
+    participant: str
+    sessions: list[str] = []
 
 
 class Nombre(BaseModel):
@@ -69,6 +75,9 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
             "contextes": labo.contextes_disponibles(),
             "budget": labo.budget.etat(),
             "synchro": labo.synchro.etat if labo.synchro else None,
+            "observations": labo.observatoire.liste_observations(),
+            "observation_en_cours": labo.observation_en_cours,
+            "derniere_observation": getattr(labo, "derniere_observation", None),
             "sessions": labo.journal.lister(),
             "automaj": [{k: r.get(k) for k in ("id", "auteur", "statut", "fichiers", "raisons",
                                                 "justification", "propose", "commit",
@@ -81,6 +90,23 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
         if not labo.synchro:
             raise HTTPException(409, "Synchronisation indisponible.")
         return labo.synchro.passage()
+
+    @app.post("/api/observer")
+    def observer(o: Observation):
+        return _protege(labo.observer, o.participant, o.sessions)
+
+    @app.get("/api/observations/{fichier}")
+    def observation(fichier: str):
+        if not re.fullmatch(r"[A-Za-z0-9\-]+\.md", fichier):
+            raise HTTPException(400, "Nom invalide.")
+        chemin = labo.observatoire.observations / fichier
+        if not chemin.exists():
+            raise HTTPException(404, "Introuvable.")
+        return {"fichier": fichier, "texte": chemin.read_text(encoding="utf-8")}
+
+    @app.post("/api/index")
+    def index():
+        return {"modifies": [str(c.relative_to(labo.racine)) for c in labo.observatoire.generer_index()]}
 
     @app.post("/api/sessions")
     def creer(n: NouvelleSession):
