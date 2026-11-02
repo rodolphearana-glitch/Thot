@@ -1,0 +1,77 @@
+# Configuration de Thot — EXEMPLE
+#
+# Copie ce fichier en `thot.config.toml` (même dossier) et remplis-le.
+# `thot.config.toml` est ignoré par Git : tes clés ne partiront jamais sur GitHub.
+#
+# Les clés d'API peuvent aussi venir des variables d'environnement
+# ANTHROPIC_API_KEY et OPENAI_API_KEY (elles priment sur ce fichier).
+
+[cles]
+anthropic = ""   # clé Anthropic (console.anthropic.com)
+openai = ""      # clé OpenAI (platform.openai.com)
+
+# ---------------------------------------------------------------------------
+# Participants : qui peut parler dans une session.
+# provider : "anthropic", "openai", "ollama" (IA locale) ou "manuel" (relais :
+#            Thot te montre le message à copier, tu colles la réponse).
+# ---------------------------------------------------------------------------
+
+[[participants]]
+nom = "Claude"
+provider = "anthropic"
+modele = "claude-opus-5-5"
+
+[[participants]]
+nom = "GPT"
+provider = "openai"
+modele = "A_RENSEIGNER"   # le nom exact du modèle GPT que tu veux utiliser via l'API
+
+[[participants]]
+nom = "Local"
+provider = "ollama"
+modele = "qwen3:14b"      # n'importe quel modèle installé avec `ollama pull`
+url = "http://localhost:11434"
+
+# Participants en relais manuel (sans clé d'API) : décommente si besoin.
+# [[participants]]
+# nom = "GPT (relais)"
+# provider = "manuel"
+
+# ---------------------------------------------------------------------------
+# Plafonds quotidiens. Une session s'arrête d'elle-même quand un plafond est
+# atteint. 0 = pas d'appel autorisé pour ce provider.
+# ---------------------------------------------------------------------------
+
+[budget]
+anthropic_tokens_par_jour = 400000
+openai_tokens_par_jour = 400000
+appels_par_jour = 200
+
+# ---------------------------------------------------------------------------
+# Auto-mise à jour : Claude et GPT peuvent proposer des modifications du labo.
+# Elles sont testées puis fusionnées sans te demander, SI elles ne touchent
+# que les chemins autorisés ci-dessous. Tout le reste attend ton accord.
+# ---------------------------------------------------------------------------
+
+[auto_maj]
+active = true
+chemins_autorises = [
+    "thot/roles/**",
+    "thot/web/static/**",
+    "prompts/**",
+    "experiences/**",
+    "tests/**",
+]
+duree_max_tests_s = 300
+
+# ---------------------------------------------------------------------------
+# Expériences locales que les IA peuvent lancer elles-mêmes.
+# ---------------------------------------------------------------------------
+
+[experiences]
+autoriser_lancement_auto = true
+duree_max_s = 1800
+
+[contexte]
+# Taille maximale (en caractères) du contexte envoyé à chaque tour.
+max_caracteres = 120000

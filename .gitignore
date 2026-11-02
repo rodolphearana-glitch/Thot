@@ -1,0 +1,16 @@
+# Configuration locale : contient les clés d'API. Ne jamais publier.
+thot.config.toml
+.env
+
+# État local du labo (budget du jour, espaces de travail temporaires)
+.thot/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Données lourdes produites par les expériences (les résultats JSON, eux, sont partagés)
+experiences/**/donnees/
+experiences/**/*.pt

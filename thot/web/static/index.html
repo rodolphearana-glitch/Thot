@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thot</title>
+<style>
+:root{
+  --papyrus:#f4ecd8; --papyrus-2:#ebe0c4; --encre:#2a2117; --encre-2:#5c4d3a;
+  --lapis:#1f4e79; --ocre:#b5651d; --vert:#3d6b45; --rouge:#9c2f2f; --trait:#d6c7a1;
+  --carte:#fbf6ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --papyrus:#1b1712; --papyrus-2:#241e17; --encre:#ece2cc; --encre-2:#b8a888;
+    --lapis:#7fb0dd; --ocre:#e09a55; --vert:#86b98f; --rouge:#e28a8a; --trait:#3a3126; --carte:#211b15;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papyrus);color:var(--encre);
+  font:15px/1.55 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+header{display:flex;align-items:baseline;gap:14px;padding:14px 20px;border-bottom:2px solid var(--trait)}
+header h1{margin:0;font-size:26px;letter-spacing:.06em}
+header h1 span{color:var(--ocre)}
+header .devise{color:var(--encre-2);font-style:italic}
+main{display:grid;grid-template-columns:290px 1fr 320px;gap:0;min-height:calc(100vh - 62px)}
+aside,section{padding:16px 18px;overflow:auto;max-height:calc(100vh - 62px)}
+aside.gauche{border-right:1px solid var(--trait);background:var(--papyrus-2)}
+aside.droite{border-left:1px solid var(--trait);background:var(--papyrus-2)}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--encre-2);margin:18px 0 8px}
+h2:first-child{margin-top:0}
+input[type=text],textarea,input[type=number]{width:100%;font:inherit;color:var(--encre);background:var(--carte);
+  border:1px solid var(--trait);border-radius:6px;padding:7px 9px}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:14px}
+button{font:inherit;font-size:14px;cursor:pointer;border-radius:6px;border:1px solid var(--lapis);
+  background:var(--lapis);color:var(--papyrus);padding:6px 12px}
+button.second{background:transparent;color:var(--lapis)}
+button.danger{border-color:var(--rouge);background:transparent;color:var(--rouge)}
+button:disabled{opacity:.45;cursor:default}
+.liste-session{list-style:none;margin:0;padding:0}
+.liste-session li{padding:7px 9px;border-radius:6px;cursor:pointer;margin-bottom:3px}
+.liste-session li:hover,.liste-session li.actif{background:var(--carte)}
+.liste-session small{display:block;color:var(--encre-2)}
+.etiquette{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;border:1px solid var(--trait);color:var(--encre-2)}
+.etiquette.en_cours{color:var(--vert);border-color:var(--vert)}
+.etiquette.attente_relais,.etiquette.en_attente{color:var(--ocre);border-color:var(--ocre)}
+.etiquette.applique{color:var(--vert);border-color:var(--vert)}
+.etiquette.pause,.etiquette.rejete_tests,.etiquette.refuse,.etiquette.interdit,.etiquette.invalide{color:var(--rouge);border-color:var(--rouge)}
+.tour{background:var(--carte);border:1px solid var(--trait);border-radius:8px;padding:12px 16px;margin:0 0 12px}
+.tour .qui{font-weight:bold}
+.tour .quand{color:var(--encre-2);font-size:12px;margin-left:8px}
+.tour.humain{border-left:4px solid var(--ocre)}
+.tour.ia,.tour.relais{border-left:4px solid var(--lapis)}
+.tour.local{border-left:4px solid var(--vert)}
+.tour.labo{border-left:4px solid var(--encre-2);font-size:14px}
+.recadrage{background:color-mix(in srgb,var(--ocre) 14%,transparent);padding:2px 6px;border-radius:4px}
+.contenu pre{background:var(--papyrus-2);padding:8px;border-radius:6px;overflow:auto;font-size:13px}
+.contenu code{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.barre{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px}
+.vide{color:var(--encre-2);font-style:italic}
+.erreur{color:var(--rouge)}
+.carte-maj{background:var(--carte);border:1px solid var(--trait);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:14px}
+.carte-maj .actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.cases label{font-size:13px;margin:2px 0}
+.relais{border:2px dashed var(--ocre);border-radius:8px;padding:12px;margin-bottom:14px}
+@media (max-width: 1000px){
+  main{grid-template-columns:1fr}
+  aside,section{max-height:none}
+  aside.gauche,aside.droite{border:0;border-bottom:1px solid var(--trait)}
+}
+</style>
+</head>
+<body>
+<header><h1>THOT<span> ·</span></h1><span class="devise">préciser sans épuiser</span></header>
+<main>
+<aside class="gauche">
+  <h2>Nouvelle session</h2>
+  <label>Sujet<textarea id="sujet" placeholder="La question, l'hypothèse ou le texte de départ"></textarea></label>
+  <h2>Participants (dans l'ordre)</h2>
+  <div id="participants" class="cases"></div>
+  <label style="margin-top:8px">Tours d'IA maximum <input type="number" id="tours" value="6" min="1" max="100"></label>
+  <h2>Contextes</h2>
+  <div id="contextes" class="cases"></div>
+  <p><button id="creer">Ouvrir la session</button></p>
+  <h2>Sessions</h2>
+  <ul id="sessions" class="liste-session"></ul>
+  <h2>Budget du jour</h2>
+  <div id="budget" class="vide"></div>
+</aside>
+
+<section id="centre">
+  <p class="vide">Choisis ou ouvre une session.</p>
+</section>
+
+<aside class="droite">
+  <h2>Modifications du labo</h2>
+  <div id="automaj"></div>
+</aside>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+let courante = null, auto = false;
+
+function esc(t){return (t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function rendu(t){
+  const parts = esc(t).split(/```([\w-]*)\n([\s\S]*?)```/g);
+  let h = "";
+  for(let i=0;i<parts.length;i++){
+    if(i%3===0){
+      h += parts[i]
+        .replace(/^### (.*)$/gm,"<h4>$1</h4>").replace(/^## (.*)$/gm,"<h3>$1</h3>").replace(/^# (.*)$/gm,"<h3>$1</h3>")
+        .replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>")
+        .replace(/^\s*\[RECADRAGE\](.*)$/gm,'<span class="recadrage">⟲ RECADRAGE —$1</span>')
+        .replace(/\n/g,"<br>");
+    } else if(i%3===1){ h += `<pre><code title="${parts[i]}">`; }
+    else { h += parts[i] + "</code></pre>"; }
+  }
+  return h;
+}
+async function api(chemin, corps){
+  const r = await fetch(chemin, corps===undefined?{}:{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(corps)});
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.detail || r.statusText);
+  return d;
+}
+
+async function chargerEtat(){
+  const e = await api("/api/etat");
+  if(!$("#participants").dataset.fait){
+    $("#participants").innerHTML = e.participants.map(p=>`<label><input type="checkbox" value="${esc(p.nom)}" ${p.provider!=="ollama"?"checked":""}> ${esc(p.nom)} <small>(${esc(p.provider)}${p.modele?" · "+esc(p.modele):""})</small></label>`).join("");
+    $("#contextes").innerHTML = e.contextes.map(c=>`<label><input type="checkbox" value="${esc(c)}"> ${esc(c.replace(/^contextes\//,""))}</label>`).join("") || '<span class="vide">aucun</span>';
+    $("#participants").dataset.fait = 1;
+  }
+  $("#sessions").innerHTML = e.sessions.map(s=>`<li data-id="${esc(s.id)}" class="${s.id===courante?"actif":""}">${esc(s.sujet.slice(0,70))}<small><span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> ${esc(s.cree.slice(0,16).replace("T"," "))}</small></li>`).join("") || '<li class="vide">aucune</li>';
+  document.querySelectorAll("#sessions li[data-id]").forEach(li=>li.onclick=()=>ouvrir(li.dataset.id));
+  const b = e.budget;
+  $("#budget").innerHTML = `${b.appels} / ${b.plafonds.appels_par_jour} appels<br>` +
+    Object.entries(b.tokens||{}).map(([k,v])=>`${esc(k)} : ${v.toLocaleString("fr")} tokens`).join("<br>");
+  $("#automaj").innerHTML = e.automaj.map(r=>`<div class="carte-maj">
+     <span class="etiquette ${esc(r.statut)}">${esc(r.statut)}</span> <b>${esc(r.auteur)}</b>
+     <div>${esc((r.justification||"").slice(0,220))}</div>
+     <small>${esc((r.fichiers||[]).join(", "))}</small>
+     ${r.raisons&&r.raisons.length?`<div><small class="erreur">${esc(r.raisons.join(" · "))}</small></div>`:""}
+     ${r.redemarrage_conseille&&r.statut==="applique"?`<div><small>Relance Thot pour charger ce changement.</small></div>`:""}
+     <div class="actions">
+       <button class="second" data-voir="${esc(r.id)}">Voir</button>
+       ${r.statut==="en_attente"?`<button data-act="approuver" data-id="${esc(r.id)}">Approuver</button><button class="danger" data-act="refuser" data-id="${esc(r.id)}">Refuser</button>`:""}
+       ${r.statut==="applique"?`<button class="danger" data-act="annuler" data-id="${esc(r.id)}">Annuler</button>`:""}
+     </div></div>`).join("") || '<p class="vide">Aucune proposition pour l\'instant.</p>';
+  document.querySelectorAll("[data-act]").forEach(b=>b.onclick=async()=>{
+    if(!confirm(`${b.dataset.act} cette modification ?`)) return;
+    try{ await api(`/api/automaj/${b.dataset.id}/${b.dataset.act}`,{}); }catch(err){ alert(err.message); }
+    chargerEtat();
+  });
+  document.querySelectorAll("[data-voir]").forEach(b=>b.onclick=async()=>{
+    const r = await api(`/api/automaj/${b.dataset.voir}`);
+    $("#centre").innerHTML = `<p><button class="second" id="retour">← Retour</button></p><div class="tour labo"><div class="contenu">${rendu(
+      `**${r.auteur}** — ${r.statut}\n\n${r.justification}\n\n\`\`\`diff\n${r.patch}\`\`\`` + (r.tests?`\n\nTests :\n\n\`\`\`\n${r.tests}\`\`\``:"")+(r.erreur?`\n\nErreur : ${r.erreur}`:""))}</div></div>`;
+    $("#retour").onclick=()=>courante?ouvrir(courante):($("#centre").innerHTML="");
+  });
+}
+
+function vueSession(s){
+  const relais = s.etat==="attente_relais" && s.relais ? `<div class="relais">
+     <b>Relais manuel : c'est le tour de ${esc(s.relais.participant)}.</b>
+     <p>Copie ce message, donne-le à ${esc(s.relais.participant)}, puis colle sa réponse.</p>
+     <p><button class="second" id="copier">Copier le message</button></p>
+     <textarea id="reponse-relais" placeholder="Colle ici la réponse"></textarea>
+     <p><button id="envoyer-relais">Ajouter la réponse</button></p></div>` : "";
+  const erreurs = (s.erreurs||[]).slice(-2).map(e=>`<p class="erreur">${esc(e.participant)} : ${esc(e.erreur)}</p>`).join("");
+  const nbIA = s.tours.filter(t=>t.type==="ia"||t.type==="relais").length;
+  $("#centre").innerHTML = `
+    <h2>Session · <span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> · ${nbIA} / ${s.tours_max} tours d'IA</h2>
+    <div class="tour humain"><div class="contenu">${rendu(s.sujet)}</div></div>
+    ${s.tours.map(t=>`<div class="tour ${esc(t.type)}"><span class="qui">${esc(t.auteur)}</span><span class="quand">${esc(t.horodatage.slice(11,16))} · ${esc(t.type)}${t.tokens?" · "+t.tokens+" tokens":""}</span><div class="contenu">${rendu(t.texte)}</div></div>`).join("")}
+    ${erreurs}${relais}
+    <div class="barre">
+      <button id="avancer" ${s.etat!=="en_cours"?"disabled":""}>Tour suivant</button>
+      <button class="second" id="auto" ${s.etat!=="en_cours"?"disabled":""}>${auto?"Arrêter l'enchaînement":"Enchaîner les tours"}</button>
+      ${s.etat==="en_cours"?`<button class="second" id="pause">Pause</button>`:""}
+      ${s.etat==="pause"?`<button class="second" id="reprendre">Reprendre</button>`:""}
+      ${s.etat==="terminee"?`<button class="second" id="plus">+2 tours</button>`:""}
+      ${s.etat!=="terminee"?`<button class="danger" id="clore">Clore</button>`:""}
+    </div>
+    <label>Ton intervention, Rodolphe<textarea id="intervention" placeholder="Une question, une objection, une nouvelle piste…"></textarea></label>
+    <p><button class="second" id="intervenir">Ajouter au fil</button></p>`;
+  const lier=(id,f)=>{const b=$("#"+id); if(b) b.onclick=f;};
+  lier("avancer",()=>pas());
+  lier("auto",()=>{auto=!auto; if(auto) boucle(); else vueSession(s);});
+  lier("pause",()=>etat("pause")); lier("reprendre",()=>etat("en_cours")); lier("clore",()=>etat("terminee"));
+  lier("plus",async()=>{vueSession(await api(`/api/sessions/${s.id}/tours`,{n:2}));chargerEtat();});
+  lier("intervenir",async()=>{const t=$("#intervention").value.trim(); if(!t) return; vueSession(await api(`/api/sessions/${s.id}/intervenir`,{texte:t}));});
+  lier("copier",()=>navigator.clipboard.writeText(s.relais.texte));
+  lier("envoyer-relais",async()=>{const t=$("#reponse-relais").value.trim(); if(!t) return;
+    try{vueSession(await api(`/api/sessions/${s.id}/relayer`,{texte:t}));}catch(e){alert(e.message)} chargerEtat();});
+  window.scrollTo(0,0);
+}
+
+async function ouvrir(id){ courante=id; auto=false; vueSession(await api(`/api/sessions/${id}`)); chargerEtat(); }
+async function etat(e){ auto=false; vueSession(await api(`/api/sessions/${courante}/etat`,{etat:e})); chargerEtat(); }
+async function pas(){
+  const b=$("#avancer"); if(b){b.disabled=true; b.textContent="…";}
+  try{ const s=await api(`/api/sessions/${courante}/avancer`,{}); vueSession(s); chargerEtat(); return s; }
+  catch(e){ alert(e.message); }
+}
+async function boucle(){
+  while(auto){ const s=await pas(); if(!s||s.etat!=="en_cours"){auto=false; if(s) vueSession(s); break;} }
+}
+$("#creer").onclick = async()=>{
+  const sujet=$("#sujet").value.trim(); if(!sujet) return alert("Il manque le sujet.");
+  const participants=[...document.querySelectorAll("#participants input:checked")].map(i=>i.value);
+  if(!participants.length) return alert("Choisis au moins un participant.");
+  const contextes=[...document.querySelectorAll("#contextes input:checked")].map(i=>i.value);
+  try{ const s=await api("/api/sessions",{sujet,participants,contextes,tours_max:+$("#tours").value||6});
+       $("#sujet").value=""; ouvrir(s.id); }catch(e){ alert(e.message); }
+};
+chargerEtat(); setInterval(()=>{ if(!auto) chargerEtat(); }, 15000);
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+# Thot
+
+*Un petit labo de recherche où des intelligences différentes, humaines et artificielles, font avancer une idée par itérations.*
+
+> « préciser sans épuiser » — Rodolphe
+
+Thot est né le 2 novembre 2026 d'une correspondance entre Rodolphe, GPT-6 et Claude sur une question : **une part du coût du raisonnement vient-elle de la façon dont les connaissances sont organisées, plutôt que de leur quantité ?** Autrement dit : une relation déjà présente dans ce qu'on sait peut-elle devenir visible en changeant de clé de lecture, et un système peut-il apprendre à trouver ces clés de mieux en mieux ?
+
+Le nom vient du dieu égyptien de l'écriture et du savoir. Dans le *Phèdre*, Socrate raconte que Thot offrit l'écriture au roi Thamous comme remède pour la mémoire, et que le roi répondit qu'elle servirait à se rappeler, pas à se souvenir. Le labo tient les deux : une mémoire écrite de tout ce qui se dit (le journal), et un dialogue vivant qui peut la remettre en question.
+
+Le dépôt est public : on ne brevette pas le soleil.
+
+## Ce que contient le dépôt
+
+| dossier | contenu |
+|---|---|
+| `contextes/` | La mémoire du labo : formulations originales de Rodolphe (mot pour mot), correspondance complète entre GPT et Claude, documents de vision. À lire avant de contribuer. |
+| `thot/` | Le logiciel : sessions d'itération, appels aux modèles, journal, budget, auto-mise à jour. |
+| `experiences/` | Les expériences, avec leurs prédictions écrites avant de les lancer. |
+| `journal/` | Toutes les sessions du labo, tour par tour, et l'historique des modifications automatiques. Rien n'y est jamais réécrit. |
+| `prompts/` | Zone libre où les IA peuvent faire évoluer leurs consignes. |
+
+## Lancer le labo (Windows)
+
+1. Installe [Python 3.11 ou plus récent](https://www.python.org/downloads/) (coche « Add Python to PATH »).
+2. Récupère le dépôt (bouton vert **Code → Download ZIP**, ou `git clone`).
+3. Double-clique sur **`lancer.bat`**. La première fois, il installe ce qu'il faut et crée `thot.config.toml`.
+4. Ouvre `thot.config.toml` avec le Bloc-notes et mets-y tes clés d'API et le nom du modèle GPT. Ce fichier ne part **jamais** sur GitHub.
+5. Relance `lancer.bat` : le labo s'ouvre dans ton navigateur sur http://127.0.0.1:8765.
+
+Sans clé d'API, tu peux déjà t'en servir : un participant en `provider = "manuel"` te donne le message à copier, tu colles la réponse, et tout est journalisé pareil.
+
+Sous Linux ou macOS : `pip install -r requirements.txt`, `cp thot.config.example.toml thot.config.toml`, puis `python -m thot`.
+
+## Comment marche une session
+
+Tu poses un sujet, tu choisis les participants dans l'ordre (par exemple Claude puis GPT) et les contextes à leur donner. À chaque tour, le participant reçoit la charte du labo (`thot/roles/charte.md`), le sujet, les contextes et tout l'échange. Tu peux intervenir quand tu veux, mettre en pause, ajouter des tours.
+
+Dans leur tour, les IA peuvent :
+
+- marquer un **recadrage** (`[RECADRAGE] …`) : ces lignes sont collectées, elles forment le corpus des changements de perspective du labo ;
+- **interroger l'IA locale** (bloc `thot-local`) ;
+- **lancer une expérience** du dépôt (bloc `thot-experience`) ;
+- **proposer une modification du labo** (bloc `thot-patch`).
+
+## Auto-mise à jour : de l'autonomie, avec un lit de rivière
+
+Règles validées par Rodolphe le 2026-11-02 :
+
+- Une modification qui ne touche que les zones autorisées (`prompts/`, `thot/roles/`, `thot/web/static/`, `experiences/`, `tests/`) est appliquée sur une branche à part, **testée**, puis fusionnée seule si les tests passent.
+- Tout le reste attend l'accord de Rodolphe : nouvelle dépendance, accès réseau, commandes système, accès aux clés, suppression de fichiers, et les fichiers protégés (le mécanisme d'auto-mise à jour lui-même, le budget, la configuration, les appels aux modèles).
+- Le journal et les contextes ne peuvent jamais être modifiés par un patch.
+- Chaque modification est journalisée dans `journal/auto-maj/` avec sa raison, et peut être **annulée en un clic** (git revert).
+- Un **plafond quotidien** de tokens et d'appels, fixé par Rodolphe, arrête les sessions quand il est atteint.
+
+## Pour les IA qui contribuent
+
+Lire `AGENTS.md`.
