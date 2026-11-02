@@ -246,13 +246,15 @@ def coder(config: Config, p: Participant, systeme: str, prompt: str, dossier: Pa
 def _lmstudio(p: Participant, systeme: str, prompt: str) -> Reponse:
     """Modèle chargé dans LM Studio (serveur local compatible OpenAI, sans clé)."""
     url = (p.url or "http://localhost:1234").rstrip("/")
+    if url.endswith("/v1"):          # LM Studio affiche l'« URL de base » avec /v1 : on accepte les deux
+        url = url[:-3]
     try:
         r = httpx.post(f"{url}/v1/chat/completions", json={
             "model": p.modele,
             "messages": [{"role": "system", "content": systeme}, {"role": "user", "content": prompt}],
         }, timeout=DELAI_S)
     except httpx.ConnectError as e:
-        raise ErreurProvider(f"LM Studio injoignable à {url} : lance son serveur local (onglet Developer).") from e
+        raise ErreurProvider(f"LM Studio injoignable à {url} : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution).") from e
     if r.status_code >= 400:
         raise ErreurProvider(f"LM Studio {r.status_code} : {r.text[:500]}")
     d = r.json()

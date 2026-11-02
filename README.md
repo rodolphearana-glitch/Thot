@@ -31,7 +31,7 @@ Thot parle à Claude et à GPT **comme le Studio TLS** : par Claude Code et Code
 
 **Mise à jour automatique** (comme le Studio TLS) : au premier lancement, `lancer.bat` relie le dossier à GitHub, même s'il vient d'un ZIP. Ensuite, au démarrage puis toutes les 10 minutes, Thot récupère les nouveautés de GitHub, **teste le nouveau code avant de l'installer** (il garde l'ancienne version si les tests échouent), envoie sur GitHub le journal du labo, et redémarre tout seul si le code a changé, quand aucun tour n'est en cours. Bouton « Synchroniser maintenant » dans la colonne de gauche. Il faut Git pour Windows (déjà là si le Studio TLS tourne).
 
-**IA locale** : Thot parle au modèle chargé dans **LM Studio** par son serveur local (onglet Developer → Start Server, port 1234). Ollama marche aussi (`provider = "ollama"`).
+**IA locale** : Thot parle au modèle chargé dans **LM Studio** par son serveur local (menu « API des modèles locaux » → « Serveur API local » en cours d'exécution, port 1234). Ollama marche aussi (`provider = "ollama"`).
 
 Dans une session, Claude et GPT lisent le dépôt en **lecture seule** : ils peuvent ouvrir les contextes et les expériences eux-mêmes, mais ne modifient rien directement. Leurs propositions de modification passent par l'auto-mise à jour.
 

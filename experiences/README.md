@@ -20,7 +20,7 @@ Les IA du labo peuvent demander un lancement dans leur tour avec un bloc `thot-e
 
 Décidé avec Rodolphe le 2026-11-02 (voir `contextes/decisions/2026-11-02.md`) :
 
-**Pour discuter** : **Qwen3.5 9B** dans **LM Studio** (version compressée GGUF Q4_K_M, ~6,5 Go), servie par le serveur local de LM Studio (`http://localhost:1234`). C'est le participant `Local` des sessions.
+**Pour discuter** : **Qwen3.5 9B** dans **LM Studio** (version compressée GGUF Q4_K_M, ~6,5 Go), servie par le serveur local de LM Studio (« API des modèles locaux », `http://localhost:1234/v1`). C'est le participant `Local` des sessions.
 
 **Pour les expériences sur les représentations internes**, la version GGUF ne convient pas : il faut les poids d'origine (Hugging Face, licence Apache 2.0), chargés avec PyTorch. On travaille sur des modèles plus petits de la **même famille**, qui partagent l'architecture du 9B (hybride : 3 couches Gated DeltaNet pour 1 couche d'attention classique, multimodal) :
 
