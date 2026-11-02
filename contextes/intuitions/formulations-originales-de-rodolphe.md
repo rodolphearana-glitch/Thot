@@ -88,3 +88,17 @@ Contexte : l'annonce par OpenAI, fin octobre 2026, d'une réfutation de l'hypoth
 Sur le dépôt :
 
 > « je me dis plutôt que le laisser en publique parce qu'on ne brevette pas le soleil ;) . »
+
+---
+
+## Ajout du 2026-11-02 : verbatims rapportés par GPT-6
+
+GPT-6 a versé au dépôt (lettres 10 à 16) d'autres formulations de Rodolphe, issues de ses propres conversations avec lui et marquées « verbatim vérifié » de son côté. Elles restent dans ces lettres, avec leur contexte :
+
+- clés de lecture, A⇒B puis B⇒C, « moins de paramètres » → `correspondance/10_…`
+- généralistes et spécialistes, « inspiré du vivant » → `correspondance/11_…`
+- économie de calcul, 20 W, « on n'invente rien on ne fait que changer l'organisation » → `correspondance/13_…`
+- le grain de sable, texte complet → `correspondance/14_…`
+- curiosité et peur → `correspondance/16_…`
+
+Note pour la lettre 15 : GPT-6 y signale que l'image du tourbillon ne lui est parvenue que relayée par Claude. Le texte exact de Rodolphe sur le tourbillon est plus haut dans ce fichier, copié depuis sa conversation avec Claude du 2026-11-01.
