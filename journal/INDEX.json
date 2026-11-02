@@ -32,10 +32,10 @@
         "contextes/intuitions/formulations-originales-de-rodolphe.md"
       ],
       "cree": "2026-11-02T15:13:03+01:00",
-      "dernier_evenement": "2026-11-02T17:04:25+01:00",
+      "dernier_evenement": "2026-11-02T17:15:40+01:00",
       "etat": "terminee",
-      "experiences_demandees": 2,
-      "experiences_executees": 2,
+      "experiences_demandees": 8,
+      "experiences_executees": 7,
       "fichiers": {
         "etat": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.json",
         "lisible": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.md",
@@ -49,11 +49,11 @@
         "GPT"
       ],
       "recadrages": 3,
-      "relances": 0,
+      "relances": 1,
       "sources": [],
       "sujet": "Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.",
-      "tours": 28,
-      "tours_ia": 10
+      "tours": 44,
+      "tours_ia": 13
     },
     {
       "contextes": [],

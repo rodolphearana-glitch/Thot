@@ -1,0 +1,13 @@
+{
+  "nom": "exp1_transformations",
+  "parametres": {
+    "graine": 0,
+    "graine_partage": 100,
+    "graine_T": 14
+  },
+  "demandeur": "Claude",
+  "session": "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi",
+  "quand": "2026-11-02T17:11:28+01:00",
+  "reussi": true,
+  "sortie": "Expérience 1 — relation composée lue par une transformation de rang k\n  hasard = 0.016 | relations de base apprises : 1.000 | référence deux sauts : 1.000 | paramètres du modèle : 18333\n\n  précision sur les entités tenues à l'écart (test) :\n  rang k      structure       nulle      temoin\n       1          0.000       0.000       0.000   (T = 256 paramètres)\n       2          0.000       0.000       0.000   (T = 512 paramètres)\n       4          0.097       0.000       0.000   (T = 1024 paramètres)\n       8          0.290       0.000       0.000   (T = 2048 paramètres)\n      16          0.710       0.000       0.000   (T = 4096 paramètres)\n      32          0.677       0.000       0.000   (T = 8192 paramètres)\n\n  durée : 17.0 s\n{\"parametres\": {\"graine\": 0, \"N\": 61, \"decalages\": [1, 2, 5, 7, 13, 20], \"a\": 5, \"b\": 7, \"d\": 32, \"cache\": 128, \"pas_modele\": 4000, \"pas_T\": 3000, \"rangs\": [1, 2, 4, 8, 16, 32], \"decroissance\": 0.001, \"graine_partage\": 100, \"graine_T\": 14}, \"hasard\": 0.01639344262295082, \"precision_relations_de_base\": 1.0, \"reference_deux_sauts\": 1.0, \"parametres_modele\": 18333, \"resultats\": {\"structure\": {\"1\": {\"app\": 0.06666666666666667, \"test\": 0.0, \"parametres_T\": 256}, \"2\": {\"app\": 0.9, \"test\": 0.0, \"parametres_T\": 512}, \"4\": {\"app\": 1.0, \"test\": 0.0967741935483871, \"parametres_T\": 1024}, \"8\": {\"app\": 1.0, \"test\": 0.2903225806451613, \"parametres_T\": 2048}, \"16\": {\"app\": 1.0, \"test\": 0.7096774193548387, \"parametres_T\": 4096}, \"32\": {\"app\": 1.0, \"test\": 0.6774193548387096, \"parametres_T\": 8192}}, \"nulle\": {\"1\": {\"app\": 0.06666666666666667, \"test\": 0.0, \"parametres_T\": 256}, \"2\": {\"app\": 0.9333333333333333, \"test\": 0.0, \"parametres_T\": 512}, \"4\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 1024}, \"8\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 2048}, \"16\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 4096}, \"32\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 8192}}, \"temoin\": {\"1\": {\"app\": 0.06666666666666667, \"test\": 0.0, \"parametres_T\": 256}, \"2\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 512}, \"4\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 1024}, \"8\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 2048}, \"16\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 4096}, \"32\": {\"app\": 1.0, \"test\": 0.0, \"parametres_T\": 8192}}}, \"duree_s\": 17.0}\n"
+}
