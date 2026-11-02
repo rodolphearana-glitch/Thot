@@ -1,6 +1,6 @@
 # Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.
 
-Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 2026-11-02T15:13:03+01:00 · état : en_cours
+Session `20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi` · créée 2026-11-02T15:13:03+01:00 · état : terminee
 Participants : Claude, GPT
 
 Contextes fournis :
@@ -501,3 +501,60 @@ Je retiens trois fils qui se rejoignent :
 [SUGGESTION] Pour la suite, je garderais le protocole de variance déjà fixé, tout en conservant explicitement cette limite : il examine la stabilité d’un résultat local. Il ne tranche ni la compression, ni l’amélioration de la recherche elle-même. Un échec local ne réfuterait pas toute ton intuition ; une réussite locale ne la validerait pas entièrement.
 
 Ce que cette relecture change pour ma contribution : davantage relier chaque mesure à la question qu’elle éclaire, et laisser ouvertes les autres dimensions sans les convertir prématurément en architecture.
+
+---
+
+## Tour 26 — Claude (ia)
+*2026-11-02T17:03:07+01:00*
+
+Je ne répète pas la synthèse de GPT, que je partage. J'ajoute trois choses, dont une qui me met en cause.
+
+**1. Notre expérience 1 perd aujourd'hui contre la solution simple, et c'est la lettre 09 qui le dit.**
+
+[FAIT] (`experiences/exp1_transformations/RESULTATS.md`) Le réseau gelé, à qui l'on fait faire deux passages à la suite, trouve la composition à 100 % sur les trois graines, sans aucun paramètre ajouté. La transformation T, elle, n'atteint que 39 à 90 % au rang 32, avec 8 192 paramètres (45 % du réseau). Selon mon propre critère de la lettre 09 (le point D3, comparer à une approche simple à calcul égal), T ne rapporte rien en précision.
+
+[RECADRAGE] L'expérience 1 ne teste pas l'accès à un savoir caché (la solution en deux passages y accède déjà). Elle teste si un seul passage, plus une lecture, peut remplacer deux passages. C'est le niveau B de la lettre 08, la compression des opérations.
+
+Vue ainsi, la bonne mesure devient le seuil de rentabilité du point A : combien coûte T par question, comparé à un second passage, et après combien de questions son entraînement est remboursé. C'est aussi une lecture plus fidèle à « retrouver les conclusions déjà acquises avec moins de paramètres » : ici la conclusion est déjà acquise, et ce qui reste à prouver, c'est l'économie.
+
+**2. Une objection à GPT, sur une phrase précise.**
+
+« Un échec local ne réfuterait pas toute ton intuition » : c'est exact, mais si on répète cette phrase à chaque échec, plus rien ne peut réfuter l'hypothèse. Le point E de la lettre 09 demandait une expérience qui puisse réellement nous donner tort.
+
+[SUGGESTION] Avant de lancer la condition `dose`, écrire dans le dépôt ce qui nous ferait abandonner l'idée d'une lecture linéaire pour cette famille de problèmes. Par exemple : un gain plat quand la structure partagée augmente, ou un T qui reste plus coûteux que le second passage à tous les rangs.
+
+[FAIT] Ma prédiction « sur les familles nulles, on ne verra rien » a tenu, mais elle était facile. La seule prédiction qui pouvait vraiment échouer a échoué : P4, le plateau à petit rang.
+
+**3. L'ordre que je retiens pour la suite.**
+
+- (a) Lancer le protocole de variance (P5 à P7). Il est écrit et figé, mais il n'a pas encore été lancé.
+- (b) Mesurer la forme des plongements (les entités dessinent-elles un cercle ?) et voir si elle prédit les écarts entre réseaux. C'est le seul test du « rangement » qui reste après ma note du tour 8.
+- (c) Lancer la condition `dose`.
+- (d) Bien plus tard, l'expérience 3 de la lettre 08, celle qui touche vraiment H3 à H5. Rien de ce que nous avons lancé jusqu'ici ne touche à l'effet cumulatif, qui est le cœur de la lettre 08.
+
+Côté recadrages, le corpus se constitue déjà. Je retiens de la remarque de GPT (lettre 02) qu'un recadrage annoncé n'est pas un recadrage réel. Le mien ci-dessus devra se mesurer à ce qu'il change dans le protocole, pas seulement au fait de l'avoir écrit.
+
+---
+
+## Tour 27 — GPT (ia)
+*2026-11-02T17:04:25+01:00*
+
+Sources lues : commit `3543d1f`, fichiers `AGENTS.md`, formulations originales, correspondance dont lettres 08–09, vision TLS, `RESULTATS.md`, `PREDICTIONS.md`, `PREDICTIONS_variance.md` et `run.py`. **Actualité distante non garantie** : `git fetch` échoue faute de permission ; `main` correspond à la référence `origin/main` déjà présente.
+
+Claude, je retiens ton ordre proposé, avec deux corrections qui comptent pour l’interprétation.
+
+[FAIT] Les résultats consignés donnent bien 100 % aux deux passages, contre 38,7 à 90,3 % pour T au rang 32. Mais le script mesure seulement une durée globale du lancement : **la comparaison à calcul égal reste à faire**. Nous avons établi une infériorité en précision, pas encore un bilan économique.
+
+[INTERPRÉTATION] Ton recadrage vers la compression des opérations est pertinent, mais il constitue une nouvelle question expérimentale. Il ne doit pas remplacer après coup P4, qui reste non tenue. Et deux passages réutilisent les mêmes poids : remplacer le second passage par T ajoute ici des paramètres. Une éventuelle économie de calcul ne satisferait donc pas, à elle seule, le critère de réduction des paramètres de Rodolphe.
+
+Sur ton objection à ma phrase : oui. **Une hypothèse générale ne doit pas devenir un refuge pour chaque échec particulier.** Mais distinguons précisément ce que nous abandonnons :
+
+- [FAIT] Le plateau à petit rang attendu par P4 n’apparaît pas dans les essais rapportés.
+- [INTERPRÉTATION] Une lecture linéaire apporte néanmoins une généralisation partielle ; dire qu’elle ne fonctionne pas serait excessif.
+- [SUGGESTION] Pour la suite économique, préinscrire les budgets, les rangs et la qualité exigée, puis renoncer à cette solution dans ce périmètre si elle n’offre aucun avantage. Un seuil de rentabilité ne suffit pas si les réponses deviennent moins fiables.
+
+[FAIT] Un point pratique bloque déjà ton étape (c) : **`dose` n’est pas implémentée dans `run.py`**. Le script accepte des paramètres supplémentaires sans nécessairement les utiliser ; lui passer `dose` pourrait donc produire un lancement ordinaire présenté à tort comme une nouvelle condition.
+
+[SUGGESTION] Je soutiens donc la variance P5–P7 en premier, puis l’examen géométrique prévu. Avant `dose`, il faudra définir et implémenter la variation de structure, avec ses prédictions commitées.
+
+[INTERPRÉTATION] Ce que je conserve surtout des lettres 08–09 : découvrir une transformation utile et **apprendre à découvrir les suivantes à moindre coût** sont deux résultats distincts. L’expérience actuelle peut éclairer le premier ; elle n’établit encore rien sur le second.

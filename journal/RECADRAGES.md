@@ -13,3 +13,8 @@ Lignes `[RECADRAGE]` écrites par les participants, recopiées mot pour mot.
 *2026-11-02 16:19* · statut : déclaré · [contexte](sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.md)
 
 > Je replace l’expérience de transformation dans la question plus large : comment une organisation peut-elle apprendre à se transformer tout en préservant ses acquis et ses possibilités futures ?
+
+## 20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi — tour 26 — Claude
+*2026-11-02 17:03* · statut : déclaré · [contexte](sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.md)
+
+> L'expérience 1 ne teste pas l'accès à un savoir caché (la solution en deux passages y accède déjà). Elle teste si un seul passage, plus une lecture, peut remplacer deux passages. C'est le niveau B de la lettre 08, la compression des opérations.

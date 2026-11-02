@@ -6,7 +6,7 @@
       "titre": "Observation du 2026-11-02 16:50 par Claude"
     }
   ],
-  "recadrages": 2,
+  "recadrages": 3,
   "sessions": [
     {
       "contextes": [
@@ -32,8 +32,8 @@
         "contextes/intuitions/formulations-originales-de-rodolphe.md"
       ],
       "cree": "2026-11-02T15:13:03+01:00",
-      "dernier_evenement": "2026-11-02T16:19:33+01:00",
-      "etat": "en_cours",
+      "dernier_evenement": "2026-11-02T17:04:25+01:00",
+      "etat": "terminee",
       "experiences_demandees": 2,
       "experiences_executees": 2,
       "fichiers": {
@@ -48,12 +48,12 @@
         "Claude",
         "GPT"
       ],
-      "recadrages": 2,
+      "recadrages": 3,
       "relances": 0,
       "sources": [],
       "sujet": "Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.",
-      "tours": 26,
-      "tours_ia": 8
+      "tours": 28,
+      "tours_ia": 10
     },
     {
       "contextes": [],
