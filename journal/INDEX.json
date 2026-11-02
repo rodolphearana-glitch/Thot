@@ -1,0 +1,74 @@
+{
+  "format": 1,
+  "observations": [],
+  "recadrages": 2,
+  "sessions": [
+    {
+      "contextes": [
+        "contextes/README.md",
+        "contextes/correspondance/00_gpt_2026-10_une-conversation-sans-destination.md",
+        "contextes/correspondance/01_claude_2026-11-01_premiere-lettre.md",
+        "contextes/correspondance/02_gpt_2026-11-01_reversal-curse-et-angles-morts.md",
+        "contextes/correspondance/03_claude_2026-11-01_tourbillon.md",
+        "contextes/correspondance/04_gpt_2026-11-01_tourbillon-et-bibliotheque.md",
+        "contextes/correspondance/05_claude_2026-11-01_babel-socrate-et-le-lit-de-la-riviere.md",
+        "contextes/correspondance/06_gpt_2026-11-01_socrate-interroge-son-lit.md",
+        "contextes/correspondance/07_claude_2026-11-01_le-daimonion.md",
+        "contextes/correspondance/08_gpt_2026-11-02_transmission-technique-PvsNP-transformations.md",
+        "contextes/correspondance/09_claude_2026-11-02_reponse-transmission-technique.md",
+        "contextes/correspondance/10_gpt_2026-11-02_cles-de-lecture-et-cadres.md",
+        "contextes/correspondance/11_gpt_2026-11-02_generalistes-specialistes-et-diversite.md",
+        "contextes/correspondance/12_gpt_2026-11-02_cognitive-memory-architecture.md",
+        "contextes/correspondance/13_gpt_2026-11-02_compression-et-economie-cognitive.md",
+        "contextes/correspondance/14_gpt_2026-11-02_humilite-certitude-et-validation.md",
+        "contextes/correspondance/15_gpt_2026-11-02_tourbillon-socrate-et-memoire-vivante.md",
+        "contextes/correspondance/16_gpt_2026-11-02_tls-simulation-et-protocole-de-recherche.md",
+        "contextes/decisions/2026-11-02.md",
+        "contextes/intuitions/formulations-originales-de-rodolphe.md"
+      ],
+      "cree": "2026-11-02T15:13:03+01:00",
+      "dernier_evenement": "2026-11-02T16:19:33+01:00",
+      "etat": "terminee",
+      "experiences_demandees": 2,
+      "experiences_executees": 2,
+      "fichiers": {
+        "etat": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.json",
+        "lisible": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/session.md",
+        "tours": "sessions/20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi/tours.jsonl"
+      },
+      "id": "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi",
+      "modifications_proposees": 2,
+      "participants": [
+        "Claude",
+        "GPT"
+      ],
+      "recadrages": 2,
+      "sujet": "Lisez les lettres 08 et 09 et dites-moi ce que vous retenez pour la suite.",
+      "tours": 26,
+      "tours_ia": 8
+    },
+    {
+      "contextes": [],
+      "cree": "2026-11-02T15:48:40+01:00",
+      "dernier_evenement": "2026-11-02T15:59:59+01:00",
+      "etat": "terminee",
+      "experiences_demandees": 0,
+      "experiences_executees": 0,
+      "fichiers": {
+        "etat": "sessions/20261102-154840-amelioration-interface-labo/session.json",
+        "lisible": "sessions/20261102-154840-amelioration-interface-labo/session.md",
+        "tours": "sessions/20261102-154840-amelioration-interface-labo/tours.jsonl"
+      },
+      "id": "20261102-154840-amelioration-interface-labo",
+      "modifications_proposees": 1,
+      "participants": [
+        "Claude",
+        "GPT"
+      ],
+      "recadrages": 0,
+      "sujet": "amélioration interface labo",
+      "tours": 3,
+      "tours_ia": 1
+    }
+  ]
+}
