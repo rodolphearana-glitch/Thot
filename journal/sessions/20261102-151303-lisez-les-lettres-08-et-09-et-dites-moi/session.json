@@ -5,7 +5,7 @@
     "Claude",
     "GPT"
   ],
-  "tours_max": 8,
+  "tours_max": 10,
   "contextes": [
     "contextes/README.md",
     "contextes/correspondance/00_gpt_2026-10_une-conversation-sans-destination.md",
@@ -28,7 +28,7 @@
     "contextes/decisions/2026-11-02.md",
     "contextes/intuitions/formulations-originales-de-rodolphe.md"
   ],
-  "etat": "terminee",
+  "etat": "en_cours",
   "prochain": 8,
   "relais": null,
   "cree": "2026-11-02T15:13:03+01:00",
