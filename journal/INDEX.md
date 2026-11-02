@@ -9,6 +9,7 @@ Généré automatiquement à partir des journaux (sans IA). Ne pas modifier à l
 
 | session | genre | sujet | participants | état | tours (IA) | relances | recadrages | expériences demandées / exécutées | dernier événement |
 |---|---|---|---|---|---|---|---|---|---|
+| [20261102-174446-analyse-generale-des-sessions-observees](sessions/20261102-174446-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Claude, Local | en_cours | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:44 |
 | [20261102-173807-analyse-generale-des-sessions-observees](sessions/20261102-173807-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Local | terminee | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:38 |
 | [20261102-173240-analyse-generale-des-sessions-observees](sessions/20261102-173240-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Claude, Local | terminee | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:32 |
 | [20261102-173129-analyse-generale-des-sessions-observees](sessions/20261102-173129-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Claude, Local | terminee | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:31 |
