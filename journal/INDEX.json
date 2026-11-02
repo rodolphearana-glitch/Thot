@@ -197,7 +197,7 @@
       "contextes": [],
       "cree": "2026-11-02T17:32:40+01:00",
       "dernier_evenement": "2026-11-02T17:32:40+01:00",
-      "etat": "en_cours",
+      "etat": "terminee",
       "experiences_demandees": 0,
       "experiences_executees": 0,
       "fichiers": {
@@ -225,7 +225,7 @@
       "contextes": [],
       "cree": "2026-11-02T17:38:07+01:00",
       "dernier_evenement": "2026-11-02T17:38:07+01:00",
-      "etat": "en_cours",
+      "etat": "terminee",
       "experiences_demandees": 0,
       "experiences_executees": 0,
       "fichiers": {
