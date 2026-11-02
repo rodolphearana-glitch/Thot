@@ -257,12 +257,15 @@ class Observatoire:
         while chemin.exists():
             chemin, n = self.observations / f"{base}-{n}.md", n + 1
         empreinte = hashlib.sha256(consigne.encode("utf-8")).hexdigest()[:12]
-        dates = [r.get("cree") for r in self.resumes() if r["id"] in sessions]
+        # La période couvre les échanges réellement analysés : du premier au dernier tour des sources.
+        dates = sorted(t["horodatage"] for x in sessions for t in _tours(self.sessions / x) if t.get("horodatage"))
+        if not dates:
+            dates = sorted(r["cree"] for r in self.resumes() if r["id"] in sessions and r.get("cree"))
         L = [f"# Observation du {datetime.now().strftime('%Y-%m-%d %H:%M')} par {participant}", "",
              "*Rapport d'auto-observation de Thot : une analyse, pas une vérité établie. "
              "Ce fichier ne sera pas réécrit.*", "",
              "## Cadre", "",
-             f"- Période analysée : {min(dates)[:16] if dates else '?'} → {max(dates)[:16] if dates else '?'}",
+             f"- Période analysée : {dates[0][:16].replace('T', ' ') if dates else '?'} → {dates[-1][:16].replace('T', ' ') if dates else '?'}",
              "- Sessions incluses : " + ", ".join(f"[{s}](../sessions/{s}/session.md)" for s in sessions),
              "- Sources : les journaux de ces sessions (`tours.jsonl`), lus sans modification ; "
              "aucun autre fichier n'a été fourni à l'analyste.",

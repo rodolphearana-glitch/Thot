@@ -100,3 +100,18 @@ def test_tour_deja_en_cours_pas_relance(config):
     labo.en_cours.clear()
     assert len(labo.avancer(s["id"])["tours"]) == 1
     assert labo.lire(s["id"])["tour_en_cours"] is None
+
+
+def test_question_pour_rodolphe(config):
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["Relais"], 3, [])
+    labo.avancer(s["id"])
+    labo.relayer(s["id"], "Il faut installer numpy.\n\n```thot-question\nPeux-tu lancer pip install numpy ?\n```\n")
+    ouvertes = labo.questions_ouvertes()
+    assert len(ouvertes) == 1 and ouvertes[0]["auteur"] == "Relais" and "numpy" in ouvertes[0]["texte"]
+    s = labo.repondre_question(s["id"], 1, "C'est fait.")
+    assert labo.questions_ouvertes() == []
+    assert s["tours"][-1]["auteur"] == "Rodolphe" and "C'est fait." in s["tours"][-1]["texte"]
+    import pytest
+    with pytest.raises(ValueError):
+        labo.repondre_question(s["id"], 1, "encore")

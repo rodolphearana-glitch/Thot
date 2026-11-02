@@ -153,6 +153,9 @@ def test_10_observation_a_plusieurs_ia_preserve_ses_sources(labo, config):
     texte = premier[0].read_text(encoding="utf-8")
     for rubrique in ("Période analysée", "Sessions incluses", "Sources", "Méthode", "Tour 0 — A", "Tour 1 — B"):
         assert rubrique in texte
+    # La période couvre les échanges de la source (premier et dernier tour), pas la seule date de création.
+    t_source = labo.journal.tours(s["id"])
+    assert f"{t_source[0]['horodatage'][:16].replace('T', ' ')} → {t_source[-1]['horodatage'][:16].replace('T', ' ')}" in texte
     # Relance puis nouvelle clôture : un deuxième rapport s'ajoute, le premier n'est pas réécrit.
     labo.ajouter_tours(obs["id"], 1)
     labo.avancer(obs["id"])

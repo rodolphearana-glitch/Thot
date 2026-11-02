@@ -4,7 +4,8 @@ Chaque expérience est un dossier contenant au moins :
 
 - `run.py` — se lance avec `python experiences/<nom>/run.py --params '{"cle": valeur}'` ; imprime un rapport lisible puis une dernière ligne JSON ;
 - `PREDICTIONS.md` — écrit **avant** le premier lancement, jamais réécrit ensuite ;
-- `RESULTATS.md` — ce qui a été observé, confronté aux prédictions, avec les limites.
+- `RESULTATS.md` — ce qui a été observé, confronté aux prédictions, avec les limites ;
+- `rapide.json` — les paramètres d'un lancement de quelques secondes : `tests/test_experiences.py` lance chaque expérience avec, pour qu'une modification « testée » le soit vraiment.
 
 Les résultats bruts des lancements faits depuis le labo arrivent dans `resultats/` (un fichier JSON par lancement).
 

@@ -43,6 +43,10 @@ class Participants(BaseModel):
     participants: list[str]
 
 
+class Reponse(BaseModel):
+    texte: str
+
+
 class Nombre(BaseModel):
     n: int = 2
 
@@ -77,6 +81,7 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
             "budget": labo.budget.etat(),
             "synchro": labo.synchro.etat if labo.synchro else None,
             "observations": labo.observatoire.liste_observations(),
+            "questions": labo.questions_ouvertes(),
             "sessions": [x | {"tour_en_cours": labo.en_cours.get(x["id"])} for x in labo.journal.lister()],
             "automaj": [{k: r.get(k) for k in ("id", "auteur", "statut", "fichiers", "raisons",
                                                 "justification", "propose", "commit",
@@ -134,6 +139,10 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
     @app.post("/api/sessions/{ident}/participants")
     def participants(ident: str, p: Participants):
         return _protege(labo.changer_participants, ident, p.participants)
+
+    @app.post("/api/sessions/{ident}/questions/{numero}")
+    def repondre(ident: str, numero: int, r: Reponse):
+        return _protege(labo.repondre_question, ident, numero, r.texte)
 
     @app.post("/api/sessions/{ident}/tours")
     def plus_de_tours(ident: str, n: Nombre):

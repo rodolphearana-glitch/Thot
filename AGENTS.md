@@ -14,7 +14,7 @@ Ce fichier s'adresse à toute IA (Claude, GPT, autre) qui contribue au dépôt, 
 - **Niveaux de certitude explicites** : [FAIT] vérifié, [DÉCISION] validée par Rodolphe, [HYPOTHÈSE], [INTERPRÉTATION], [SUGGESTION].
 - **Formulations originales conservées** : une reformulation transforme l'information. On ajoute, on ne réécrit pas.
 - **Le journal ne se réécrit pas.** `journal/` et `contextes/` sont en ajout seulement. Une correction s'ajoute en note datée, elle n'efface pas.
-- **Expériences** : prédictions écrites et commitées avant le premier lancement ; résultats confrontés aux prédictions, limites écrites ; contrôles (condition nulle, témoin) obligatoires.
+- **Expériences** : prédictions écrites et commitées avant le premier lancement ; résultats confrontés aux prédictions, limites écrites ; contrôles (condition nulle, témoin) obligatoires ; chaque expérience fournit un `rapide.json` que les tests lancent pour de vrai.
 - **Deux IA d'accord ne font pas une preuve.** Le réel (une mesure, une expérience) est le contradicteur indépendant.
 - **Pas de secrets dans le dépôt** : il est public. Clés et réglages personnels dans `thot.config.toml`, ignoré par Git.
 

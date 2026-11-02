@@ -215,6 +215,43 @@ class Labo:
             self._post_traitement(s, nom, texte)
             return self.journal.lire(ident)
 
+    # -- questions pour Rodolphe ----------------------------------------------------------
+    def _poser_question(self, ident: str, auteur: str, texte: str) -> None:
+        """Une IA pose une question à Rodolphe : elle s'affiche en haut de la page au lieu de se perdre
+        dans un long message (constat du premier rapport d'observation)."""
+        s = self.journal.lire(ident)
+        qs = s.setdefault("questions", [])
+        q = {"id": len(qs) + 1, "auteur": auteur, "texte": masquer(texte.strip()), "posee": maintenant(),
+             "statut": "ouverte"}
+        qs.append(q)
+        self.journal.sauver(s)
+        self.journal.ajouter_tour(ident, "Labo", f"Question n° {q['id']} de {auteur} pour Rodolphe, affichée en haut "
+                                  f"de la page :\n\n> {q['texte']}", "labo",
+                                  evenement={"genre": "question_posee", "question": q["id"], "auteur": auteur})
+
+    def repondre_question(self, ident: str, numero: int, texte: str) -> dict:
+        with self._verrou(ident):
+            s = self.journal.lire(ident)
+            q = next((x for x in s.get("questions", []) if x["id"] == int(numero)), None)
+            if q is None:
+                raise ValueError("Question inconnue.")
+            if q["statut"] != "ouverte":
+                raise ValueError("Cette question a déjà une réponse.")
+            q["statut"], q["reponse"], q["repondue"] = "repondue", masquer(texte.strip()), maintenant()
+            self.journal.sauver(s)
+            self.journal.ajouter_tour(ident, "Rodolphe", f"Réponse à la question n° {q['id']} de {q['auteur']} "
+                                      f"(« {q['texte'][:200]} ») :\n\n{texte.strip()}", "humain",
+                                      evenement={"genre": "question_repondue", "question": q["id"]})
+            return self.lire(ident)
+
+    def questions_ouvertes(self) -> list[dict]:
+        res = []
+        for x in self.journal.lister():
+            for q in x.get("questions", []):
+                if q["statut"] == "ouverte":
+                    res.append({"session": x["id"], "sujet": x["sujet"], **q})
+        return res
+
     def intervenir(self, ident: str, texte: str, auteur: str = "Rodolphe") -> dict:
         with self._verrou(ident):
             self.journal.ajouter_tour(ident, auteur, texte, "humain")
@@ -298,6 +335,8 @@ class Labo:
             self._repondre_local(ident, auteur, question)
         for bloc in extraire_blocs(texte, "thot-experience"):
             self._lancer_experience(ident, auteur, bloc)
+        for question in extraire_blocs(texte, "thot-question"):
+            self._poser_question(ident, auteur, question)
         if s.get("genre", "discussion") == "discussion":   # une observation ne peut pas en demander une autre
             for question in extraire_blocs(texte, "thot-observer"):
                 self._demander_observation(s, auteur, question)

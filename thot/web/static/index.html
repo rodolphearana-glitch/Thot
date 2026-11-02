@@ -64,6 +64,10 @@ button:disabled{opacity:.45;cursor:default}
 .tour.local{border-left:4px solid var(--vert)}
 .tour.codage{border-left:4px solid var(--ocre)}
 .tour.relecture{border-left:4px dashed var(--lapis)}
+.questions-globales{margin-left:auto;background:var(--ocre);border-color:var(--ocre);color:var(--papyrus);font-weight:bold}
+.question{border:2px solid var(--ocre);border-radius:8px;padding:12px 16px;margin:0 0 14px;background:color-mix(in srgb,var(--ocre) 9%,var(--carte))}
+.question textarea{min-height:60px;margin-top:8px}
+#contextes-courante.en-attente{opacity:.6}
 .tour.en-cours{border-left:4px solid var(--ocre);opacity:.8;font-style:italic}
 .tour.observation{border-left:4px solid var(--vert);background:color-mix(in srgb,var(--vert) 7%,var(--carte))}
 .tour.labo{border-left:4px solid var(--encre-2);font-size:14px}
@@ -108,7 +112,8 @@ main.droite-repliee .bande{display:flex}
 </style>
 </head>
 <body>
-<header><h1>THOT<span> ·</span></h1><span class="devise">préciser sans épuiser</span></header>
+<header><h1>THOT<span> ·</span></h1><span class="devise">préciser sans épuiser</span>
+  <button id="questions-globales" class="questions-globales" hidden></button></header>
 <main>
 <aside class="gauche">
   <details class="bloc" id="bloc-courante" data-cle="courante" open>
@@ -277,6 +282,11 @@ async function chargerEtat(){
   $("#nb-en-cours").textContent = `(${enCours.length})`; $("#nb-terminees").textContent = `(${finies.length})`;
   document.querySelectorAll(".liste-session li[data-id]").forEach(li=>li.onclick=()=>ouvrir(li.dataset.id));
   participantsDispo = e.participants;
+  const qs = e.questions||[], bq = $("#questions-globales");
+  bq.hidden = !qs.length;
+  bq.textContent = qs.length===1 ? "❓ 1 question pour toi" : `❓ ${qs.length} questions pour toi`;
+  bq.title = qs.map(q=>`${q.auteur} : ${q.texte}`).join("\n");
+  bq.onclick = ()=>{ if(qs.length) ouvrir(qs[0].session); };
   const avant = contextesDispo.length; contextesDispo = e.contextes;
   if(derniere && !avant){ vueContextes(derniere); vueParticipants(derniere); }
   const b = e.budget;
@@ -344,22 +354,29 @@ function vueParticipants(s){
   });
 }
 function vueContextes(s){
+  if($("#contextes-courante").classList.contains("en-attente")) return;  // ne pas effacer des cases en cours de choix
   const sources = (s.genre==="observation" && (s.sources||[]).length)
     ? `<div class="ajout-contexte"><b>Observation</b> — sessions observées (lecture seule) :<br>${s.sources.map(x=>esc(x)).join("<br>")}</div>` : "";
   const choisis = new Set(s.contextes||[]);
   const tous = [...new Set([...contextesDispo, ...choisis])].sort();
   $("#contextes-courante").innerHTML = tous.map(c=>`<label><input type="checkbox" value="${esc(c)}" ${choisis.has(c)?"checked":""}> ${esc(c.replace(/^contextes\//,""))}</label>`).join("")
     + `<div class="ajout-contexte">Cocher ou décocher change les contextes envoyés aux tours suivants.</div>` + sources;
-  $("#contextes-courante").querySelectorAll("input").forEach(i=>i.onchange=async()=>{
-    const liste=[...$("#contextes-courante").querySelectorAll("input:checked")].map(x=>x.value);
-    try{ vueSession(await api(`/api/sessions/${s.id}/contextes`,{contextes:liste})); }catch(err){ alert(err.message); }
+  // Plusieurs cases cochées d'affilée = un seul changement dans le fil (envoyé 1,5 s après la dernière).
+  $("#contextes-courante").querySelectorAll("input").forEach(i=>i.onchange=()=>{
+    clearTimeout(attenteContextes);
+    $("#contextes-courante").classList.add("en-attente");
+    attenteContextes = setTimeout(async()=>{
+      const liste=[...$("#contextes-courante").querySelectorAll("input:checked")].map(x=>x.value);
+      try{ vueSession(await api(`/api/sessions/${s.id}/contextes`,{contextes:liste})); }catch(err){ alert(err.message); }
+      $("#contextes-courante").classList.remove("en-attente");
+    }, 1500);
   });
 }
 function depuis(iso){
   const sec = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/1000));
   return sec < 60 ? `${sec} s` : `${Math.floor(sec/60)} min ${String(sec%60).padStart(2,"0")}`;
 }
-let suivi = null;
+let suivi = null, attenteContextes = null;
 function vueSession(s){
   clearTimeout(suivi);
   if(s.tour_en_cours && !auto){ suivi = setTimeout(async()=>{ if(courante===s.id){ try{ vueSession(await api(`/api/sessions/${s.id}`)); }catch(e){} } }, 4000); }
@@ -376,6 +393,11 @@ function vueSession(s){
      <div class="contenu">${tec.provider==="claude"||tec.provider==="codex"
        ? "Il peut lire les fichiers du dépôt avant de répondre : quelques minutes, c'est normal (au plus 30 min)."
        : "Le modèle local génère sa réponse."}</div></div>` : "";
+  const questions = (s.questions||[]).filter(q=>q.statut==="ouverte").map(q=>`<div class="question">
+     <b>❓ Question de ${esc(q.auteur)} pour toi</b> <span class="quand">${esc(q.posee.slice(11,16))}</span>
+     <div class="contenu">${rendu(q.texte)}</div>
+     <textarea data-q="${q.id}" placeholder="Ta réponse (elle entre dans le fil)"></textarea>
+     <p><button data-repondre="${q.id}">Répondre</button></p></div>`).join("");
   const erreurs = (s.erreurs||[]).slice(-2).map(e=>`<p class="erreur">${esc(e.participant)} : ${esc(e.erreur)}</p>`).join("");
   const nbIA = s.tours.filter(t=>t.type==="ia"||t.type==="relais").length;
   const brouillon = $("#intervention") ? $("#intervention").value : "";
@@ -384,7 +406,7 @@ function vueSession(s){
     <h2>${s.genre==="observation"?"Observation":"Session"} · <span class="etiquette ${esc(s.etat)}">${esc(s.etat)}</span> · ${nbIA} / ${s.tours_max} tours d'IA</h2>
     <div class="tour humain"><div class="contenu">${rendu(s.sujet)}</div></div>
     ${s.tours.map(t=>`<div class="tour ${esc(t.type)}"><span class="qui">${esc(t.auteur)}</span><span class="quand">${esc(t.horodatage.slice(11,16))} · ${esc(t.type)}${t.tokens?" · "+t.tokens+" tokens":""}</span><div class="contenu">${rendu(t.texte)}</div></div>`).join("")}
-    ${enCoursHtml}${erreurs}${relais}
+    ${questions}${enCoursHtml}${erreurs}${relais}
    </div>
    <div id="saisie">
     <div class="barre">
@@ -411,6 +433,12 @@ function vueSession(s){
   lier("plus",async()=>{ nbTours = Math.max(1, +$("#nb-tours").value || 2);
     try{ localStorage.setItem("thot-nb-tours", String(nbTours)); }catch(e){}
     vueSession(await api(`/api/sessions/${s.id}/tours`,{n:nbTours})); chargerEtat(); });
+  document.querySelectorAll("[data-repondre]").forEach(b=>b.onclick=async()=>{
+    const t = document.querySelector(`textarea[data-q="${b.dataset.repondre}"]`).value.trim();
+    if(!t) return;
+    try{ vueSession(await api(`/api/sessions/${s.id}/questions/${b.dataset.repondre}`,{texte:t})); chargerEtat(); }
+    catch(err){ alert(err.message); }
+  });
   const envoyer = async()=>{const t=$("#intervention").value.trim(); if(!t) return; $("#intervention").value=""; vueSession(await api(`/api/sessions/${s.id}/intervenir`,{texte:t}));};
   lier("intervenir",envoyer);
   $("#intervention").addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); envoyer(); } });

@@ -59,6 +59,16 @@ D'autres instances analysent le journal de la session en lecture seule, puis le 
 fil. C'est une analyse, pas un verdict : intégrez ce qui vous sert, contestez le reste. Pas plus de
 quelques observations par session.
 
+6. Poser une question à Rodolphe quand vous avez besoin de lui (une décision, une installation, une
+   information que vous ne pouvez pas trouver) : elle s'affiche en haut de sa page, au lieu de se perdre
+   dans un long message. Une question par bloc, courte et à laquelle on peut répondre :
+
+```thot-question
+la question, en une ou deux phrases
+```
+
+Sa réponse arrivera dans le fil. Ne bloquez pas la discussion en l'attendant si vous pouvez avancer.
+
 Explique toujours en une ou deux phrases pourquoi tu proposes un changement. Les changements qui ne
 touchent que les zones autorisées sont testés et appliqués automatiquement ; les autres attendent
 l'accord de Rodolphe. Tout reste annulable.

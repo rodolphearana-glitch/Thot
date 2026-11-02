@@ -90,7 +90,7 @@ class Journal:
                 res.append({k: s.get(k) for k in ("id", "sujet", "etat", "cree", "tours_max")}
                            | {"genre": s.get("genre", "discussion"), "relances": s.get("relances", 0),
                               "tours_ia": sum(1 for t in tours if t.get("type") in ("ia", "relais")),
-                              "sources": s.get("sources", [])})
+                              "sources": s.get("sources", []), "questions": s.get("questions", [])})
         return res
 
     # -- tours --------------------------------------------------------------

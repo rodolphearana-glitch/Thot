@@ -1,0 +1,14 @@
+{
+  "_lisez_moi": "Paramètres d'un lancement très court, utilisé par tests/test_experiences.py pour vérifier que l'expérience tourne vraiment (pas pour mesurer quoi que ce soit).",
+  "N": 13,
+  "decalages": [1, 2, 5],
+  "a": 1,
+  "b": 2,
+  "d": 8,
+  "cache": 16,
+  "pas_modele": 150,
+  "pas_T": 60,
+  "rangs": [2],
+  "graine_partage": 100,
+  "graine_T": 10
+}
