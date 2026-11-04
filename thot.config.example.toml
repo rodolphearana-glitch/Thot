@@ -132,6 +132,21 @@ vram_reservee_go = 10     # mémoire de la carte graphique gardée pour toi (mod
 active = false
 duree_max_s = 28800       # 8 heures au plus par travail (le temps de pause ne compte pas)
 
+# ---------------------------------------------------------------------------
+# Voix (page « L'établi », http://127.0.0.1:8790/etabli). Optionnel :
+#   pip install -r requirements-voix.txt   (dans le .venv de Thot)
+# Sans Piper, la page parle avec les voix françaises de Windows (Hortense, Julie, Paul…).
+# ---------------------------------------------------------------------------
+
+[voix]
+modele_ecoute = "small"   # Whisper : "small" rapide sur le processeur, "large-v3-turbo" plus juste
+
+[voix.participants]
+# Une voix par participant : un nom de voix Windows (ex. "Paul") ou un fichier Piper de modeles/voix/.
+# Claude = "Paul"
+# GPT = "Julie"
+# Local = "Hortense"
+
 [contexte]
 # Taille maximale (en caractères) du contexte envoyé à chaque tour.
 max_caracteres = 120000

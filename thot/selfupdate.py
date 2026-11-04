@@ -41,6 +41,8 @@ PROTEGES = [
     "thot/ressources.py",
     "thot/travaux.py",
     "thot/voix.py",
+    "thot/surfaces.py",
+    "thot/memoire.py",
     "thot/providers/**",
     "thot/web/app.py",
     ".gitignore",
@@ -51,7 +53,7 @@ PROTEGES = [
     ".github/**",
 ]
 # Jamais modifiable par patch : la mémoire du labo ne se réécrit pas.
-INTERDITS = ["journal/**", "contextes/**", ".git/**", ".thot/**"]
+INTERDITS = ["journal/**", "contextes/**", "memoire/**", ".git/**", ".thot/**"]
 
 MOTIFS_SENSIBLES = {
     "accès réseau": re.compile(r"https?://|\bhttpx\b|\brequests\b|\burllib\b|\bsocket\b"),

@@ -7,8 +7,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -60,6 +60,16 @@ class Geste(BaseModel):
 
 class Oral(BaseModel):
     oral: bool
+
+
+class Phrase(BaseModel):
+    auteur: str = ""
+    texte: str
+
+
+class Correction(BaseModel):
+    ligne: str
+    remarque: str = ""
 
 
 class Modele(BaseModel):
@@ -194,6 +204,39 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
     @app.post("/api/modeles")
     def sauver_modele(m: Modele):
         return _protege(labo.bibliotheque.sauver, m.nom, m.surface)
+
+    # -- mémoire de construction ----------------------------------------------------------
+    @app.get("/api/memoire")
+    def memoire():
+        return {"lignes": labo.memoire.lignes(12)}
+
+    @app.post("/api/memoire/corriger")
+    def memoire_corriger(c: Correction):
+        labo.memoire.corriger(c.ligne, c.remarque)
+        return {"lignes": labo.memoire.lignes(12)}
+
+    # -- voix locale ---------------------------------------------------------------------
+    @app.get("/api/voix")
+    def voix():
+        return labo.voix.etat()
+
+    @app.post("/api/voix/ecouter")
+    async def ecouter(requete: Request):
+        audio = await requete.body()
+        if len(audio) > 25_000_000:
+            raise HTTPException(413, "Enregistrement trop long.")
+        import anyio
+        try:
+            texte = await anyio.to_thread.run_sync(labo.voix.ecouter, audio, requete.headers.get("content-type", ""))
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        except RuntimeError as e:
+            raise HTTPException(409, str(e))
+        return {"texte": texte}
+
+    @app.post("/api/voix/dire")
+    def dire(p: Phrase):
+        return Response(_protege(labo.voix.dire, p.auteur, p.texte), media_type="audio/wav")
 
     # -- ressources du PC et file de travaux ------------------------------------------
     @app.get("/api/ressources")

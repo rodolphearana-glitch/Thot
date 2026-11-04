@@ -17,6 +17,8 @@ from .observatoire import CONSIGNE_OBSERVATION, Observatoire
 from .ressources import Ressources
 from .surfaces import Bibliotheque
 from .travaux import Travaux
+from .voix import Voix
+from .memoire import Memoire
 from .config import Config
 from .journal import Journal, maintenant
 from .selfupdate import AutoMaj, extraire_blocs
@@ -36,6 +38,9 @@ class Labo:
         self.ressources = Ressources(config.ressources)
         self.travaux = Travaux(self.racine, config.travaux, self.ressources)
         self.bibliotheque = Bibliotheque(self.racine)
+        self.memoire = Memoire(self.racine)
+        self.voix = Voix(self.racine, config.voix, [p.nom for p in config.participants],
+                         fils=max(1, len(self.ressources.autorises())))
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self.en_cours: dict[str, dict] = {}   # session -> tour en cours (qui parle, depuis quand)
@@ -90,6 +95,9 @@ class Labo:
             par_source = max(6000, (maxc // 2) // max(1, len(session.get("sources", []))))
             exports = "\n\n".join(self.observatoire.export_session(x, par_source) for x in session.get("sources", []))
             morceaux_ctx.insert(0, "### Sessions observées (journaux, en lecture seule)\n\n" + exports)
+        mem = self.memoire.pour_prompt()
+        if mem:
+            morceaux_ctx.insert(0, "### Mémoire de construction de Thot (tenue par les IA, fin du fichier)\n\n" + mem)
         entete = f"# Sujet de la session\n\n{session['sujet']}\n"
         fin = f"\n\n---\n\nC'est ton tour, {nom}."
         ctx = "\n\n".join(morceaux_ctx)
@@ -402,6 +410,12 @@ class Labo:
             self._poser_question(ident, auteur, question)
         for bloc in extraire_blocs(texte, "thot-surface"):
             self._afficher_surface(ident, auteur, bloc)
+        for bloc in extraire_blocs(texte, "thot-memoire"):
+            gardees = self.memoire.ajouter(auteur, bloc)
+            if gardees:
+                self.journal.ajouter_tour(ident, "Labo", f"{auteur} a noté {len(gardees)} ligne(s) dans la mémoire "
+                                          "de construction (memoire/construction.md).", "labo",
+                                          evenement={"genre": "memoire", "auteur": auteur, "lignes": len(gardees)})
         if s.get("genre", "discussion") == "discussion":   # une observation ne peut pas en demander une autre
             for question in extraire_blocs(texte, "thot-observer"):
                 self._demander_observation(s, auteur, question)

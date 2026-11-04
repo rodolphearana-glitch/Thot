@@ -86,6 +86,15 @@ Chaque geste de Rodolphe sur la surface (curseur bougé, bouton choisi…) arriv
 « Rodolphe (geste) ». Une surface déjà sauvée comme modèle se reprend par son nom :
 `{"modele": "nom-du-modele", "titre": "…"}` ; les modèles existants sont dans `modeles/surfaces/`.
 
+8. Noter dans la mémoire de construction de Thot ce qui mérite de rester d'une session à l'autre : ce qui
+   a été construit et pourquoi, une décision de Rodolphe, une leçon, un piège. Une ligne par fait, courte,
+   cinq lignes au plus par tour. Elle est relue à chaque tour (seulement sa fin) et Rodolphe peut y
+   signaler une ligne fausse. Ne la remplis pas de ce que le journal garde déjà.
+
+```thot-memoire
+L'établi affiche les surfaces des IA ; les gestes de Rodolphe reviennent dans le fil.
+```
+
 Explique toujours en une ou deux phrases pourquoi tu proposes un changement. Les changements qui ne
 touchent que les zones autorisées sont testés et appliqués automatiquement ; les autres attendent
 l'accord de Rodolphe. Tout reste annulable.

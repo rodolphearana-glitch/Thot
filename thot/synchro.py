@@ -147,7 +147,7 @@ class Synchro:
             Observatoire(self.racine).generer_index()  # index et recadrages, sans IA
         except Exception as e:  # l'index ne doit jamais bloquer la synchro
             self.etat["erreur_index"] = str(e)[:300]
-        chemins = [c for c in ("journal", "experiences", "travaux") if (self.racine / c).exists()]
+        chemins = [c for c in ("journal", "experiences", "travaux", "memoire", "modeles") if (self.racine / c).exists()]
         if chemins:
             self._git("add", "-A", "--", *chemins)
         if self._git("diff", "--cached", "--quiet").returncode == 0:

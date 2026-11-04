@@ -1,0 +1,6 @@
+# Voix locale de Thot (optionnel) : pip install -r requirements-voix.txt
+# Écouter : Whisper sur le processeur. Le modèle se télécharge une fois au premier usage.
+faster-whisper>=1.0
+# Parler avec des voix Piper (sinon les voix de Windows suffisent). Les voix .onnx se mettent dans
+# modeles/voix/ et se choisissent par participant dans thot.config.toml, section [voix.participants].
+piper-tts>=1.2

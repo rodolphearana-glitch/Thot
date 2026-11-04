@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thot · l'établi</title>
+<style>
+:root{
+  --fond:#E8EBEF; --carte:#FFFFFF; --carte-2:#F3F5F8; --encre:#15181D; --encre-2:#5A6271; --trait:#C8CDD5;
+  --accent:#2F4FC9; --accent-encre:#FFFFFF; --attente:#B86A12; --ok:#2E8B57; --rouge:#A33A2A;
+  --fen:#15181D; --fen-encre:#ECEEF2; --fen-2:#232833; --fen-encre-2:#A9B0BC; --fen-q:#3A2A12; --fen-q-encre:#F2B66B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --fond:#101318; --carte:#1A1E25; --carte-2:#222731; --encre:#E6E9EE; --encre-2:#A3ABB8; --trait:#343A46;
+    --accent:#7D97F0; --accent-encre:#0D1020; --attente:#F2B66B; --ok:#6CCB95; --rouge:#E28A7A;
+    --fen:#05070A; --fen-2:#171B22;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--fond);color:var(--encre);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--trait);background:var(--carte);padding:8px 14px;min-height:40px}
+button.plein{background:var(--accent);border-color:var(--accent);color:var(--accent-encre)}
+button.rouge{border-color:var(--rouge);color:var(--rouge);background:transparent}
+button:disabled{opacity:.45;cursor:default}
+.page{max-width:1440px;margin:0 auto;padding:16px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.fenetre{flex:1 1 330px;max-width:100%;min-width:0;max-height:calc(100vh - 32px);overflow:auto;background:var(--fen);color:var(--fen-encre);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;position:sticky;top:16px}
+.fenetre select,.fenetre textarea,.fenetre input{background:var(--fen-encre);color:#15181D;border:0;border-radius:8px;padding:9px;width:100%}
+.fenetre .tete{display:flex;align-items:center;gap:10px}
+.pastille{width:12px;height:12px;border-radius:6px;background:var(--fen-q-encre);flex:none}
+.pastille.ok{background:#5BC48B}.pastille.pense{background:#7D97F0;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.petit{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--fen-encre-2)}
+.etat{font-size:21px;line-height:1.3;font-weight:600;margin:0}
+.boite{background:var(--fen-2);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.boite.q{background:var(--fen-q)} .boite.q .petit{color:var(--fen-q-encre)}
+.dernier{white-space:pre-wrap;max-height:220px;overflow:auto;font-size:14px}
+.gestes{font:12px/1.4 ui-monospace,Consolas,monospace;color:#C9CED7;display:flex;flex-direction:column;gap:2px}
+.rangee{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fenetre button{background:transparent;color:var(--fen-encre);border-color:#4A5160}
+.fenetre button.plein{background:#2F4FC9;border-color:#2F4FC9;color:#fff}
+.mem{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+.mem button{min-height:32px;padding:2px 8px;font-size:12px;flex:none}
+.micro{width:56px;height:56px;border-radius:28px !important;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.micro.ecoute{background:#A33A2A !important;border-color:#A33A2A !important}
+.bascule{display:flex;align-items:center;gap:6px;font-size:14px}
+.bascule input{width:auto}
+main{flex:999 1 640px;min-width:0;display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font-size:26px} h2{margin:0;font-size:17px}
+.carte{background:var(--carte);border:1px solid var(--trait);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.surf-tete{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.outil{font:12px ui-monospace,Consolas,monospace;background:var(--carte-2);border:1px solid var(--trait);border-radius:6px;padding:4px 8px}
+.piece{display:flex;flex-direction:column;gap:6px}
+.piece input[type=range]{width:100%;accent-color:var(--accent)}
+.piece .vers{font:11px ui-monospace,Consolas,monospace;color:var(--encre-2)}
+.piece input[type=text]{border:1px solid var(--trait);border-radius:8px;padding:9px;background:var(--carte-2)}
+.options{display:flex;flex-wrap:wrap;gap:8px}
+.options button.choisi{background:var(--encre);color:var(--carte);border-color:var(--encre)}
+.jauge{height:10px;border-radius:5px;background:var(--carte-2);overflow:hidden}
+.jauge>div{height:100%;background:var(--accent)}
+.colonnes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.colonnes>div{background:var(--carte-2);border-radius:8px;padding:12px;white-space:pre-wrap}
+.ancienne{opacity:.7}
+.vide{color:var(--encre-2);font-style:italic}
+.puces{display:flex;flex-wrap:wrap;gap:6px}
+.puce{font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid var(--trait);background:var(--carte)}
+.coeurs{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px}
+.coeurs div{height:14px;border-radius:2px;background:var(--trait)} .coeurs div.calc{background:var(--accent)}
+a{color:var(--accent)}
+.erreur{color:var(--rouge);font-size:14px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<aside class="fenetre" aria-label="Ma fenêtre">
+  <div class="tete"><div id="pastille" class="pastille"></div><span class="petit">Ma fenêtre · toujours là</span></div>
+  <label class="petit" for="session">Session</label>
+  <select id="session"></select>
+  <p id="etat" class="etat">…</p>
+  <div class="boite"><span class="petit">Dernier mot</span><div id="dernier" class="dernier vide">rien encore</div></div>
+  <div id="boite-q" class="boite q" hidden>
+    <span class="petit">Une question pour toi</span>
+    <div id="question"></div>
+    <textarea id="rep-q" rows="2" placeholder="ta réponse"></textarea>
+    <div class="rangee"><button class="plein" id="envoyer-q">Répondre</button></div>
+  </div>
+  <div class="boite">
+    <label class="petit" for="saisie">Dis-moi</label>
+    <textarea id="saisie" rows="2" placeholder="écris, ou appuie sur le micro"></textarea>
+    <div class="rangee">
+      <button id="micro" class="micro" aria-label="Parler (cliquer pour commencer, recliquer pour envoyer)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button>
+      <button id="envoyer" class="plein">Envoyer</button>
+      <button id="tour" title="Faire parler le participant suivant">Tour suivant</button>
+    </div>
+    <div class="rangee">
+      <label class="bascule"><input type="checkbox" id="oral"> mode oral</label>
+      <label class="bascule"><input type="checkbox" id="lire"> lire à voix haute</label>
+    </div>
+    <div id="voix-info" class="petit" style="text-transform:none;letter-spacing:0"></div>
+  </div>
+  <div class="boite"><span class="petit">Ce que je vois de tes gestes</span><div id="gestes" class="gestes"></div></div>
+  <div class="boite"><span class="petit">Ce que je retiens de ma construction</span><div id="memoire" class="gestes"></div></div>
+  <a href="/" style="color:#A9B0BC;font-size:13px">Labo classique</a>
+</aside>
+
+<main>
+  <div class="surf-tete"><h1>L'établi</h1><span id="maj" class="petit" style="color:var(--encre-2)"></span></div>
+  <div id="surfaces"></div>
+  <section class="carte">
+    <div class="surf-tete"><h2>Bibliothèque de surfaces</h2><span style="color:var(--encre-2);font-size:13px">modèles sauvés, réutilisables par les IA</span></div>
+    <div id="biblio" class="puces"></div>
+  </section>
+  <section class="carte">
+    <div class="surf-tete"><h2>Ton PC</h2><span id="pc-resume" style="color:var(--encre-2);font-size:13px"></span></div>
+    <div id="coeurs" class="coeurs" aria-label="Processeurs : clairs à toi, bleus aux calculs"></div>
+    <div id="travaux"></div>
+    <div class="rangee"><button id="t-stop" class="rouge">Tout arrêter</button><button id="t-reprendre">Reprendre</button></div>
+  </section>
+</main>
+</div>
+
+<script>
+"use strict";
+let courante = null, session = null, dernierTourLu = -1, avance = false, enregistreur = null, morceaux = [], audioEnCours = null;
+const $ = id => document.getElementById(id);
+async function api(chemin, corps){
+  const r = await fetch(chemin, corps===undefined ? {} : {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(corps)});
+  if(!r.ok){ let t = await r.text(); try{ t = JSON.parse(t).detail || t }catch(e){} throw new Error(t); }
+  return r.json();
+}
+function el(tag, attrs={}, ...enfants){
+  const e = document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)){
+    if(k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if(k === "texte") e.textContent = v;
+    else if(v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? "" : v);
+  }
+  for(const c of enfants) if(c) e.append(c);
+  return e;
+}
+function sansBlocs(t){ return (t||"").replace(/```[\s\S]*?```/g, "").trim(); }
+function avertir(msg){ $("maj").textContent = msg; $("maj").className = "erreur"; }
+
+// -- sessions ------------------------------------------------------------------------------
+async function chargerSessions(){
+  const e = await api("/api/etat");
+  const sel = $("session"), garde = courante || location.hash.slice(1);
+  sel.innerHTML = "";
+  const tri = e.sessions.slice().sort((a,b) => (a.etat === "terminee") - (b.etat === "terminee") || (b.id > a.id ? 1 : -1));
+  for(const s of tri) sel.append(el("option", {value:s.id, texte:`${s.etat === "terminee" ? "✓ " : ""}${s.sujet.slice(0,70)}`}));
+  if(garde && tri.some(s => s.id === garde)) sel.value = garde;
+  courante = sel.value || null;
+}
+$("session").addEventListener("change", () => { courante = $("session").value; dernierTourLu = -1; try{ history.replaceState(null,"","#"+courante) }catch(e){} rafraichir(); });
+
+async function rafraichir(){
+  if(!courante) { $("etat").textContent = "Aucune session. Crée-en une dans le labo classique."; return; }
+  try{ session = await api(`/api/sessions/${courante}`); }catch(e){ avertir(e.message); return; }
+  dessinerFenetre(); dessinerSurfaces();
+  $("maj").className = "petit"; $("maj").textContent = "à jour " + new Date().toLocaleTimeString("fr-FR");
+}
+
+function dessinerFenetre(){
+  const s = session, tec = s.tour_en_cours;
+  const p = $("pastille");
+  p.className = "pastille" + (tec ? " pense" : (s.etat === "en_cours" ? " ok" : ""));
+  if(tec){
+    const min = Math.max(0, Math.round((Date.now() - Date.parse(tec.debut)) / 1000));
+    $("etat").textContent = `${tec.participant} réfléchit… (${min} s)`;
+  } else {
+    $("etat").textContent = {en_cours:"À toi, ou au participant suivant.", pause:"En pause." + (s.erreurs?.length ? " " + s.erreurs[s.erreurs.length-1].erreur : ""),
+      attente_relais:"J'attends un relais.", terminee:"Session terminée."}[s.etat] || s.etat;
+  }
+  const ia = s.tours.filter(t => t.type === "ia" || t.type === "relais");
+  const d = ia[ia.length-1];
+  $("dernier").className = "dernier" + (d ? "" : " vide");
+  $("dernier").textContent = d ? `${d.auteur} : ${sansBlocs(d.texte).slice(0, 1500)}` : "rien encore";
+  const q = (s.questions||[]).find(x => x.statut === "ouverte");
+  $("boite-q").hidden = !q;
+  if(q){ $("question").textContent = `${q.auteur} : ${q.texte}`; $("envoyer-q").onclick = () => repondre(q.id); }
+  const g = s.tours.filter(t => t.type === "geste" || t.auteur === "Rodolphe").slice(-5).reverse();
+  $("gestes").replaceChildren(...(g.length ? g.map(t => el("span", {texte: t.texte.slice(0,160)})) : [el("span",{texte:"rien encore"})]));
+  $("oral").checked = !!s.oral;
+  // lecture à voix haute des nouveaux tours
+  if(dernierTourLu < 0) dernierTourLu = s.tours.length - 1;
+  const nouveaux = s.tours.filter(t => t.n > dernierTourLu && (t.type === "ia" || t.type === "relais"));
+  dernierTourLu = s.tours.length - 1;
+  if($("lire").checked) for(const t of nouveaux) dire(t.auteur, sansBlocs(t.texte));
+}
+
+// -- surfaces -------------------------------------------------------------------------------
+function dessinerSurfaces(){
+  const surf = session.tours.filter(t => t.type === "surface").reverse().slice(0, 4);
+  const zone = $("surfaces");
+  if(!surf.length){ zone.replaceChildren(el("section", {class:"carte"}, el("p", {class:"vide", texte:"Aucune surface pour l'instant. Les IA en posent une quand une interface dit mieux que du texte (bloc thot-surface)."}))); return; }
+  // on ne redessine pas une surface que Rodolphe est en train de manipuler
+  if(zone.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;
+  const gestes = session.tours.filter(t => t.type === "geste");
+  zone.replaceChildren(...surf.map((t, i) => carteSurface(t, i > 0, gestes)));
+}
+function valeurGeste(gestes, titre, id){
+  for(let i = gestes.length-1; i >= 0; i--){ const e = gestes[i].evenement || {}; if(e.surface === titre && e.piece === id) return e.valeur; }
+  return undefined;
+}
+function envoyerGeste(titre, piece, libelle, valeur){
+  if(!courante) return;
+  if(audioEnCours) arreterVoix();
+  api(`/api/sessions/${courante}/geste`, {titre, piece, libelle, valeur}).then(s => { session = s; dessinerFenetre(); }).catch(e => avertir(e.message));
+}
+function carteSurface(t, ancienne, gestes){
+  const s = t.surface, titre = s.titre;
+  const corps = s.pieces.map(p => piece(p, titre, valeurGeste(gestes, titre, p.id)));
+  const nom = el("input", {type:"text", placeholder:"nom-du-modele", "aria-label":"Nom du modèle", style:"width:180px;border:1px solid var(--trait);border-radius:8px;padding:8px;background:var(--carte-2)"});
+  const sauver = el("button", {texte:"Sauver comme modèle", onclick: async () => {
+    try{ await api("/api/modeles", {nom: nom.value.trim(), surface: s}); nom.value = ""; chargerBiblio(); }catch(e){ avertir(e.message); } }});
+  return el("section", {class:"carte" + (ancienne ? " ancienne" : "")},
+    el("div", {class:"surf-tete"}, el("h2", {texte:`${titre} · par ${t.auteur}`}), s.outil ? el("span", {class:"outil", texte:"vrai outil : " + s.outil}) : null),
+    ...corps,
+    el("div", {class:"rangee"}, nom, sauver));
+}
+function piece(p, titre, deja){
+  const vers = p.outil ? el("span", {class:"vers", texte:"→ " + p.outil}) : null;
+  switch(p.type){
+    case "texte": return el("p", {style:"margin:0;white-space:pre-wrap", texte:p.texte});
+    case "curseur": {
+      const v = deja ?? p.valeur ?? p.min ?? 0;
+      const lab = el("label", {for:"c-"+p.id, texte:`${p.libelle || p.id} · ${v}`});
+      const r = el("input", {type:"range", id:"c-"+p.id, min:p.min ?? 0, max:p.max ?? 100, step:p.pas ?? 1, value:v,
+        oninput: e => lab.textContent = `${p.libelle || p.id} · ${e.target.value}`,
+        onchange: e => envoyerGeste(titre, p.id, p.libelle, Number(e.target.value))});
+      return el("div", {class:"piece"}, lab, r, vers);
+    }
+    case "choix": case "decision": {
+      const v = deja ?? p.valeur;
+      return el("div", {class:"piece"}, p.libelle ? el("span", {texte:p.libelle}) : null,
+        el("div", {class:"options"}, ...p.options.map(o => el("button", {class: o === v ? "choisi" : "", texte:o,
+          onclick: () => envoyerGeste(titre, p.id, p.libelle, o)}))), vers);
+    }
+    case "interrupteur": {
+      const v = deja ?? !!p.valeur;
+      const c = el("input", {type:"checkbox", id:"i-"+p.id, checked:v, onchange: e => envoyerGeste(titre, p.id, p.libelle, e.target.checked)});
+      return el("div", {class:"piece"}, el("label", {class:"bascule", for:"i-"+p.id}, c, document.createTextNode(" " + (p.libelle || p.id))), vers);
+    }
+    case "jauge": {
+      const pct = Math.max(0, Math.min(100, 100 * (p.valeur || 0) / (p.max || 100)));
+      return el("div", {class:"piece"}, el("div", {class:"rangee", style:"justify-content:space-between"},
+        el("span", {texte:p.libelle || ""}), el("span", {class:"vers", texte:`${p.valeur ?? 0} / ${p.max ?? 100}`})),
+        el("div", {class:"jauge"}, el("div", {style:`width:${pct}%`})));
+    }
+    case "comparaison": return el("div", {class:"colonnes"}, ...p.colonnes.map(c => el("div", {}, el("strong", {texte:c.titre}), document.createTextNode("\n" + c.texte))));
+    case "champ": {
+      const i = el("input", {type:"text", id:"f-"+p.id, placeholder:p.indice || "", value: deja ?? ""});
+      return el("div", {class:"piece"}, el("label", {for:"f-"+p.id, texte:p.libelle || p.id}),
+        el("div", {class:"rangee"}, i, el("button", {texte:"Envoyer", onclick: () => envoyerGeste(titre, p.id, p.libelle, i.value)})));
+    }
+    case "lien": return el("a", {href:p.url, target:"_blank", rel:"noopener", texte:p.libelle || p.url});
+  }
+  return el("span", {class:"vide", texte:"pièce inconnue : " + p.type});
+}
+
+// -- saisie, tours ----------------------------------------------------------------------------
+async function envoyerTexte(texte){
+  texte = (texte || "").trim();
+  if(!texte || !courante) return;
+  arreterVoix();
+  try{
+    session = await api(`/api/sessions/${courante}/intervenir`, {texte});
+    $("saisie").value = ""; dessinerFenetre();
+    const lu = await api(`/api/sessions/${courante}`);
+    if(lu.tour_en_cours){                       // on se coupe la parole : le tour en cours s'arrête
+      await api(`/api/sessions/${courante}/interrompre`, {}).catch(() => {});
+      for(let i = 0; i < 40 && avance; i++) await new Promise(r => setTimeout(r, 250));
+    }
+    tourSuivant();
+  }catch(e){ avertir(e.message); }
+}
+async function tourSuivant(){
+  if(!courante || avance) return;
+  avance = true; $("tour").disabled = true;
+  const attente = setInterval(rafraichir, 2500);
+  try{
+    const s = await api(`/api/sessions/${courante}`);
+    if(s.etat === "pause") await api(`/api/sessions/${courante}/etat`, {etat:"en_cours"});
+    session = await api(`/api/sessions/${courante}/avancer`, {});
+  }catch(e){ avertir(e.message); }
+  clearInterval(attente); avance = false; $("tour").disabled = false;
+  rafraichir();
+}
+async function repondre(n){
+  try{ session = await api(`/api/sessions/${courante}/questions/${n}`, {texte: $("rep-q").value}); $("rep-q").value = ""; dessinerFenetre(); }
+  catch(e){ avertir(e.message); }
+}
+$("envoyer").onclick = () => envoyerTexte($("saisie").value);
+$("saisie").addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); envoyerTexte($("saisie").value); } });
+$("tour").onclick = tourSuivant;
+$("oral").onchange = async e => { try{ session = await api(`/api/sessions/${courante}/oral`, {oral:e.target.checked}); dessinerFenetre(); }catch(err){ avertir(err.message); } };
+try{ $("lire").checked = localStorage.getItem("thot-lire") === "1"; }catch(e){}
+$("lire").onchange = e => { try{ localStorage.setItem("thot-lire", e.target.checked ? "1" : "0") }catch(err){} if(!e.target.checked) arreterVoix(); };
+
+// -- voix : écouter (Whisper sur le PC) et dire (voix du PC) -----------------------------------
+let infoVoix = null;
+async function chargerVoix(){
+  try{ infoVoix = await api("/api/voix"); }catch(e){ infoVoix = null; }
+  const ecoute = infoVoix?.ecoute ? "écoute : Whisper sur ton PC" : "écoute indisponible (pip install -r requirements-voix.txt)";
+  const parole = infoVoix?.parole === "piper" ? "voix : Piper sur ton PC" : "voix : celles de Windows (navigateur)";
+  $("voix-info").textContent = `${ecoute} · ${parole}`;
+  $("micro").disabled = !infoVoix?.ecoute;
+}
+$("micro").onclick = async () => {
+  if(enregistreur){ enregistreur.stop(); return; }
+  arreterVoix();                                  // on se coupe la parole
+  try{
+    const flux = await navigator.mediaDevices.getUserMedia({audio:true});
+    morceaux = [];
+    enregistreur = new MediaRecorder(flux);
+    enregistreur.ondataavailable = e => morceaux.push(e.data);
+    enregistreur.onstop = async () => {
+      flux.getTracks().forEach(t => t.stop());
+      $("micro").classList.remove("ecoute"); enregistreur = null;
+      const blob = new Blob(morceaux, {type: morceaux[0]?.type || "audio/webm"});
+      $("voix-info").textContent = "je transcris…";
+      try{
+        const r = await fetch("/api/voix/ecouter", {method:"POST", headers:{"content-type": blob.type}, body: blob});
+        if(!r.ok) throw new Error((await r.json()).detail || r.statusText);
+        const {texte} = await r.json();
+        chargerVoix();
+        if(texte) envoyerTexte(texte);
+      }catch(e){ avertir("Écoute : " + e.message); chargerVoix(); }
+    };
+    enregistreur.start();
+    $("micro").classList.add("ecoute");
+  }catch(e){ avertir("Micro : " + e.message); }
+};
+function arreterVoix(){
+  if(audioEnCours){ audioEnCours.pause(); audioEnCours = null; }
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  fileVoix.length = 0;
+}
+const fileVoix = [];
+function dire(auteur, texte){
+  if(!texte) return;
+  fileVoix.push([auteur, texte.slice(0, 1200)]);
+  if(fileVoix.length === 1 && !audioEnCours) suivantVoix();
+}
+async function suivantVoix(){
+  const item = fileVoix[0]; if(!item) return;
+  const [auteur, texte] = item;
+  const fin = () => { fileVoix.shift(); audioEnCours = null; suivantVoix(); };
+  if(infoVoix?.parole === "piper"){
+    try{
+      const r = await fetch("/api/voix/dire", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({auteur, texte})});
+      if(!r.ok) throw new Error(r.statusText);
+      const url = URL.createObjectURL(await r.blob());
+      audioEnCours = new Audio(url); audioEnCours.onended = fin; audioEnCours.onerror = fin; audioEnCours.play(); return;
+    }catch(e){ /* repli sur la voix du navigateur */ }
+  }
+  if(!window.speechSynthesis){ fin(); return; }
+  const u = new SpeechSynthesisUtterance(texte); u.lang = "fr-FR";
+  const voix = speechSynthesis.getVoices().filter(v => v.lang.startsWith("fr") && v.localService);
+  const choix = infoVoix?.voix?.[auteur];                       // réglage par participant dans la config
+  const parNom = choix ? voix.find(v => v.name.toLowerCase().includes(String(choix).toLowerCase())) : null;
+  const rang = (infoVoix?.participants || []).indexOf(auteur);
+  u.voice = parNom || (voix.length ? voix[Math.max(0, rang) % voix.length] : null);
+  u.onend = fin; u.onerror = fin;
+  audioEnCours = {pause: () => speechSynthesis.cancel()};
+  speechSynthesis.speak(u);
+}
+
+// -- bibliothèque, PC, travaux --------------------------------------------------------------------
+async function chargerBiblio(){
+  const m = await api("/api/modeles").catch(() => []);
+  $("biblio").replaceChildren(...(m.length ? m.map(x => el("span", {class:"puce", title: x.pieces.join(", "), texte:`${x.titre} (${x.nom})`}))
+    : [el("span", {class:"vide", texte:"vide pour l'instant : sauve une surface qui marche bien"})]));
+}
+async function chargerPC(){
+  try{
+    const r = await api("/api/ressources"), t = await api("/api/travaux");
+    const res = new Set(r.reserves);
+    $("coeurs").replaceChildren(...Array.from({length: r.processeurs}, (_, i) => el("div", {class: res.has(i) ? "" : "calc", title: res.has(i) ? `processeur ${i} : à toi` : `processeur ${i} : calculs`})));
+    $("coeurs").style.gridTemplateColumns = `repeat(${Math.min(16, r.processeurs)}, minmax(0,1fr))`;
+    $("pc-resume").textContent = (r.bridage ? `${r.reserves.length} processeurs gardés pour toi, ${r.autorises.length} pour les calculs, priorité ${r.priorite}` : "bridage impossible : psutil absent")
+      + (r.jeu ? ` · pause : ${r.jeu}` : "");
+    const lignes = [];
+    lignes.push(el("p", {style:"margin:0", texte: t.active ? (t.arrete ? "File de travaux arrêtée." : "File de travaux active.") : "File de travaux désactivée (à allumer dans thot.config.toml, section [travaux])."}));
+    if(t.en_cours) lignes.push(el("p", {style:"margin:0", texte:`En cours : ${t.en_cours.experience} depuis ${t.en_cours.debut.slice(11,16)} · ${(t.en_cours.evenements||[]).slice(-1)[0] || ""}`}));
+    if(t.a_faire.length) lignes.push(el("p", {style:"margin:0", texte:"À faire : " + t.a_faire.join(", ")}));
+    for(const f of t.faits.slice(0, 3)) lignes.push(el("p", {style:"margin:0;color:var(--encre-2);font-size:14px",
+      texte:`${f.reussi ? "✓" : "✗"} ${f.id} · ${f.refus || f.interrompu || (f.duree_s ? Math.round(f.duree_s/60) + " min" : "")}`}));
+    $("travaux").replaceChildren(...lignes);
+  }catch(e){ $("pc-resume").textContent = e.message; }
+}
+async function chargerMemoire(){
+  const m = await api("/api/memoire").catch(() => ({lignes:[]}));
+  $("memoire").replaceChildren(...(m.lignes.length ? m.lignes.slice().reverse().map(l => el("div", {class:"mem"},
+    el("span", {texte:l}), el("button", {texte:"faux ?", "aria-label":"Signaler cette ligne comme fausse", onclick: async () => {
+      await api("/api/memoire/corriger", {ligne:l}).catch(e => avertir(e.message)); chargerMemoire(); }}))) : [el("span", {texte:"vide pour l'instant"})]));
+}
+$("t-stop").onclick = async () => { await api("/api/travaux/arreter", {}); chargerPC(); };
+$("t-reprendre").onclick = async () => { await api("/api/travaux/reprendre", {}); chargerPC(); };
+
+(async () => {
+  await chargerSessions(); await chargerVoix();
+  rafraichir(); chargerBiblio(); chargerPC(); chargerMemoire();
+  setInterval(() => { if(!avance) rafraichir(); }, 4000);
+  setInterval(() => { chargerPC(); chargerMemoire(); }, 15000);
+})();
+</script>
+</body>
+</html>
