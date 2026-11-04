@@ -15,6 +15,7 @@ from .codage import Codage
 from .confidentialite import masquer
 from .observatoire import CONSIGNE_OBSERVATION, Observatoire
 from .ressources import Ressources
+from .surfaces import Bibliotheque
 from .travaux import Travaux
 from .config import Config
 from .journal import Journal, maintenant
@@ -34,6 +35,7 @@ class Labo:
         self.observatoire = Observatoire(self.racine)
         self.ressources = Ressources(config.ressources)
         self.travaux = Travaux(self.racine, config.travaux, self.ressources)
+        self.bibliotheque = Bibliotheque(self.racine)
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self.en_cours: dict[str, dict] = {}   # session -> tour en cours (qui parle, depuis quand)
@@ -190,6 +192,8 @@ class Labo:
                                     "_fil": threading.get_ident()}
             prompt = self.construire_prompt(s, nom)
             systeme = self.charte()
+            if s.get("oral"):
+                systeme += "\n\n" + (DOSSIER_ROLES / "oral.md").read_text(encoding="utf-8")
             if s.get("genre") == "observation":
                 systeme += "\n\n# Cette session est une OBSERVATION\n\n" + CONSIGNE_OBSERVATION + (
                     "\nVous êtes plusieurs analystes : répondez-vous, contestez les observations des autres "
@@ -300,6 +304,37 @@ class Labo:
             self.journal.sauver(s)
             return self.journal.lire(ident)
 
+    # -- établi : surfaces, gestes, mode oral -----------------------------------------------
+    def _afficher_surface(self, ident: str, auteur: str, bloc: str) -> None:
+        try:
+            surface = self.bibliotheque.composer(json.loads(bloc))
+        except (ValueError, KeyError, TypeError) as e:
+            self.journal.ajouter_tour(ident, "Labo", f"Surface de {auteur} refusée : {e}", "labo",
+                                      evenement={"genre": "surface_refusee", "auteur": auteur})
+            return
+        self.journal.ajouter_tour(ident, auteur, f"Surface « {surface['titre']} » posée sur l'établi.", "surface",
+                                  surface=surface, evenement={"genre": "surface", "titre": surface["titre"]})
+
+    def geste(self, ident: str, titre: str, piece: str, libelle: str, valeur) -> dict:
+        """Rodolphe agit sur une surface : le geste entre dans le fil, l'IA le lit au tour suivant."""
+        with self._verrou(ident):
+            self.journal.lire(ident)  # lève si la session n'existe pas
+            v = json.dumps(valeur, ensure_ascii=False) if not isinstance(valeur, str) else valeur
+            self.journal.ajouter_tour(ident, "Rodolphe", f"Geste sur « {str(titre)[:120]} » : "
+                                      f"{str(libelle or piece)[:120]} → {v[:500]}", "geste",
+                                      evenement={"genre": "geste", "surface": str(titre)[:120],
+                                                 "piece": str(piece)[:40], "valeur": valeur})
+            return self.lire(ident)
+
+    def changer_oral(self, ident: str, oral: bool) -> dict:
+        with self._verrou(ident):
+            s = self.journal.lire(ident)
+            s["oral"] = bool(oral)
+            self.journal.sauver(s)
+            self.journal.ajouter_tour(ident, "Labo", "Mode oral " + ("activé : tours courts, sans liste, au "
+                                      "rythme de Rodolphe." if oral else "désactivé."), "labo")
+            return self.lire(ident)
+
     def changer_contextes(self, ident: str, contextes: list[str]) -> dict:
         """Ajoute ou retire des contextes d'une session ; le changement est noté dans le fil."""
         dispo = set(self.contextes_disponibles())
@@ -365,6 +400,8 @@ class Labo:
             self._lancer_experience(ident, auteur, bloc)
         for question in extraire_blocs(texte, "thot-question"):
             self._poser_question(ident, auteur, question)
+        for bloc in extraire_blocs(texte, "thot-surface"):
+            self._afficher_surface(ident, auteur, bloc)
         if s.get("genre", "discussion") == "discussion":   # une observation ne peut pas en demander une autre
             for question in extraire_blocs(texte, "thot-observer"):
                 self._demander_observation(s, auteur, question)

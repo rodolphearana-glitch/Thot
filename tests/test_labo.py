@@ -165,3 +165,43 @@ def test_erreur_inattendue_enregistree(config, monkeypatch):
     s = labo.avancer(s["id"])
     assert s["etat"] == "pause" and "TimeoutError" in s["erreurs"][-1]["erreur"]
     assert labo.lire(s["id"])["tour_en_cours"] is None
+
+
+def test_surface_geste_et_modele(config):
+    """Une IA pose une surface ; un geste de Rodolphe entre dans le fil ; la surface se sauve et se reprend."""
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["Relais"], 4, [])
+    labo.avancer(s["id"])
+    bloc = ('{"titre": "Réglages", "outil": "magick", "pieces": [{"type": "curseur", "id": "clair", "libelle": '
+            '"Luminosité", "min": 0, "max": 100, "valeur": 60}, {"type": "decision", "id": "ok", "options": ["Oui", "Non"]}]}')
+    s = labo.relayer(s["id"], f"Voilà.\n\n```thot-surface\n{bloc}\n```\n")
+    t = s["tours"][-1]
+    assert t["type"] == "surface" and t["surface"]["pieces"][0]["valeur"] == 60
+    s = labo.geste(s["id"], "Réglages", "clair", "Luminosité", 75)
+    assert s["tours"][-1]["type"] == "geste" and "75" in s["tours"][-1]["texte"]
+    assert "75" in labo.construire_prompt(labo.journal.lire(s["id"]), "Relais")
+    labo.bibliotheque.sauver("reglages", t["surface"])
+    assert labo.bibliotheque.composer({"modele": "reglages", "titre": "Autre"})["titre"] == "Autre"
+
+
+def test_surface_invalide_refusee(config):
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["Relais"], 4, [])
+    labo.avancer(s["id"])
+    s = labo.relayer(s["id"], '```thot-surface\n{"pieces": [{"type": "html", "code": "<script>"}]}\n```\n')
+    assert s["tours"][-1]["auteur"] == "Labo" and "refusée" in s["tours"][-1]["texte"]
+
+
+def test_mode_oral(config, monkeypatch):
+    from thot import providers
+    vu = {}
+
+    def capte(cfg, p, systeme, prompt, delai=0):
+        vu["systeme"] = systeme
+        return providers.Reponse("Court.", 0)
+    monkeypatch.setattr(providers, "appeler", capte)
+    labo = Labo(config)
+    s = labo.creer("Sujet", ["A"], 3, [])
+    labo.changer_oral(s["id"], True)
+    labo.avancer(s["id"])
+    assert "Mode oral" in vu["systeme"] and "Aucune liste" in vu["systeme"]

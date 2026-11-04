@@ -69,6 +69,23 @@ la question, en une ou deux phrases
 
 Sa réponse arrivera dans le fil. Ne bloquez pas la discussion en l'attendant si vous pouvez avancer.
 
+7. Poser une surface sur l'établi de Rodolphe quand une interface dit mieux que du texte : des réglages,
+   un choix entre pistes, une comparaison, une jauge. Seulement des pièces connues (pas de HTML) :
+   `texte`, `curseur`, `choix`, `interrupteur`, `jauge`, `comparaison`, `decision`, `champ`, `lien`.
+   `outil` dit quel vrai programme la pièce commanderait (Rodolphe doit toujours le savoir).
+
+```thot-surface
+{"titre": "Suite d'Erin", "outil": "Thot · file de travaux",
+ "pieces": [
+   {"type": "texte", "texte": "Le témoin Stedman est-il passé ?"},
+   {"type": "curseur", "id": "fils", "libelle": "Fils pour le solveur", "min": 1, "max": 20, "pas": 1, "valeur": 16},
+   {"type": "decision", "id": "suite", "libelle": "On continue ?", "options": ["Lancer cette nuit", "Attendre"]}]}
+```
+
+Chaque geste de Rodolphe sur la surface (curseur bougé, bouton choisi…) arrive dans le fil comme un tour
+« Rodolphe (geste) ». Une surface déjà sauvée comme modèle se reprend par son nom :
+`{"modele": "nom-du-modele", "titre": "…"}` ; les modèles existants sont dans `modeles/surfaces/`.
+
 Explique toujours en une ou deux phrases pourquoi tu proposes un changement. Les changements qui ne
 touchent que les zones autorisées sont testés et appliqués automatiquement ; les autres attendent
 l'accord de Rodolphe. Tout reste annulable.

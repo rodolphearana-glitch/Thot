@@ -51,6 +51,22 @@ class Nombre(BaseModel):
     n: int = 2
 
 
+class Geste(BaseModel):
+    titre: str
+    piece: str
+    libelle: str = ""
+    valeur: str | int | float | bool | None = None
+
+
+class Oral(BaseModel):
+    oral: bool
+
+
+class Modele(BaseModel):
+    nom: str
+    surface: dict
+
+
 def creer_app(labo: Labo | None = None) -> FastAPI:
     labo = labo or Labo(charger())
     app = FastAPI(title="Thot")
@@ -69,6 +85,10 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
     @app.get("/")
     def accueil():
         return FileResponse(STATIQUE / "index.html")
+
+    @app.get("/etabli")
+    def etabli():
+        return FileResponse(STATIQUE / "etabli.html")
 
     @app.get("/api/etat")
     def etat():
@@ -153,6 +173,46 @@ def creer_app(labo: Labo | None = None) -> FastAPI:
     @app.post("/api/sessions/{ident}/tours")
     def plus_de_tours(ident: str, n: Nombre):
         return _protege(labo.ajouter_tours, ident, n.n)
+
+    @app.post("/api/sessions/{ident}/geste")
+    def geste(ident: str, g: Geste):
+        return _protege(labo.geste, ident, g.titre, g.piece, g.libelle, g.valeur)
+
+    @app.post("/api/sessions/{ident}/oral")
+    def oral(ident: str, o: Oral):
+        return _protege(labo.changer_oral, ident, o.oral)
+
+    # -- bibliothèque de surfaces ----------------------------------------------------
+    @app.get("/api/modeles")
+    def modeles():
+        return labo.bibliotheque.lister()
+
+    @app.get("/api/modeles/{nom}")
+    def modele(nom: str):
+        return _protege(labo.bibliotheque.lire, nom)
+
+    @app.post("/api/modeles")
+    def sauver_modele(m: Modele):
+        return _protege(labo.bibliotheque.sauver, m.nom, m.surface)
+
+    # -- ressources du PC et file de travaux ------------------------------------------
+    @app.get("/api/ressources")
+    def ressources():
+        return labo.ressources.etat()
+
+    @app.get("/api/travaux")
+    def travaux():
+        return labo.travaux.etat()
+
+    @app.post("/api/travaux/arreter")
+    def travaux_arreter():
+        labo.travaux.arreter()
+        return labo.travaux.etat()
+
+    @app.post("/api/travaux/reprendre")
+    def travaux_reprendre():
+        labo.travaux.reprendre()
+        return labo.travaux.etat()
 
     @app.get("/api/automaj/{ident}")
     def automaj_lire(ident: str):
