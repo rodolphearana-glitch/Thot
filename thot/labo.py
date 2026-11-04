@@ -15,6 +15,7 @@ from .codage import Codage
 from .confidentialite import masquer
 from .observatoire import CONSIGNE_OBSERVATION, Observatoire
 from .ressources import Ressources
+from .travaux import Travaux
 from .config import Config
 from .journal import Journal, maintenant
 from .selfupdate import AutoMaj, extraire_blocs
@@ -32,6 +33,7 @@ class Labo:
         self.codage = Codage(config, self.automaj)
         self.observatoire = Observatoire(self.racine)
         self.ressources = Ressources(config.ressources)
+        self.travaux = Travaux(self.racine, config.travaux, self.ressources)
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self.en_cours: dict[str, dict] = {}   # session -> tour en cours (qui parle, depuis quand)

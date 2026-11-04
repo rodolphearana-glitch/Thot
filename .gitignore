@@ -14,3 +14,6 @@ __pycache__/
 # Données lourdes produites par les expériences (les résultats JSON, eux, sont partagés)
 experiences/**/donnees/
 experiences/**/*.pt
+
+# arrêt local de la file de travaux (propre au PC)
+travaux/STOP

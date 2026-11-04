@@ -53,3 +53,8 @@ Maquettes de départ (privées, sur claude.ai) : « L'établi de Thot », trois 
 - Le micro, les haut-parleurs, la qualité des voix et la latence ressentie.
 - Le comportement réel du bridage sous Windows (affinité, priorité, pause pendant un jeu).
 - Quelle moitié du 7950X3D porte le cache 3D (pour réserver la bonne).
+
+## Ajouts du 5 novembre 2026, vers minuit (demandes de Rodolphe pendant la réalisation)
+
+- « la génération de la voie elle peut être partagé avec 2 timbres de voies pour que genre gpt et toi discutiez en directe avec moi ? » → [DÉCISION] une voix par participant, réglable dans la config ; chaque tour d'une session est lu avec la voix de son auteur.
+- « mais genre vous pouvez pas choisir en route des question déjà faite pour commencer le dialogue au lieux de faire une liste à chaque foi ? » → [DÉCISION] un **mode oral** (phrases courtes, aucune liste, une seule relance à la fin) et une **réserve d'amorces et de relances** (`modeles/oral/`), où le participant local, rapide, pioche pour démarrer pendant que Claude ou GPT réfléchissent ; une relance qui a bien marché est gardée.

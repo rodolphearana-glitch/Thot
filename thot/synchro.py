@@ -31,8 +31,9 @@ MOTIFS_CODE = ("thot/", "requirements")
 
 
 class Synchro:
-    def __init__(self, racine: Path, config: dict, occupe=lambda: False):
+    def __init__(self, racine: Path, config: dict, occupe=lambda: False, travaux=None):
         self.racine = racine
+        self.travaux = travaux  # file de travaux (thot/travaux.py), lancée après chaque passage
         self.config = config
         self.occupe = occupe
         self.etat = {"active": bool(config.get("active", True)), "derniere": None, "message": "",
@@ -123,6 +124,11 @@ class Synchro:
                             erreur = "Envoi vers GitHub impossible : " + p.stderr.strip()[-300:]
                         else:
                             messages.append(f"{en_avance} commit(s) envoyé(s) sur GitHub")
+        # 4. File de travaux : seulement sur une version à jour et testée, et jamais avant un redémarrage.
+        if self.travaux is not None and not erreur and not self.etat["redemarrage"]:
+            quoi = self.travaux.lancer_suivant()
+            if quoi not in ("rien à faire", "file de travaux désactivée", "un travail tourne déjà"):
+                messages.append(quoi)
         self.etat.update(derniere=maintenant(), erreur=erreur,
                          message=", ".join(messages) or "à jour", version=self.version(),
                          version_code=self.version_code())
@@ -141,7 +147,7 @@ class Synchro:
             Observatoire(self.racine).generer_index()  # index et recadrages, sans IA
         except Exception as e:  # l'index ne doit jamais bloquer la synchro
             self.etat["erreur_index"] = str(e)[:300]
-        chemins = [c for c in ("journal", "experiences") if (self.racine / c).exists()]
+        chemins = [c for c in ("journal", "experiences", "travaux") if (self.racine / c).exists()]
         if chemins:
             self._git("add", "-A", "--", *chemins)
         if self._git("diff", "--cached", "--quiet").returncode == 0:

@@ -38,7 +38,8 @@ def main() -> None:
 
     config = charger()
     labo = Labo(config)
-    synchro = Synchro(config.racine, config.github, occupe=labo.occupe)
+    synchro = Synchro(config.racine, config.github, occupe=lambda: labo.occupe() or bool(labo.travaux.en_cours),
+                      travaux=labo.travaux)
     labo.synchro = synchro
 
     port = port_libre(args.port)
