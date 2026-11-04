@@ -1,0 +1,7 @@
+{
+  "experience": "exp2_erin",
+  "parametres": {"methode": "stedman", "duree_s": 10800},
+  "duree_max_s": 11400,
+  "auteur": "Claude",
+  "pourquoi": "Témoin de l'expérience 2 : le modèle retrouve-t-il une étendue de Stedman Triples avec bobs (solutions connues) ? Erin ne sera lancé que si oui. Voir experiences/exp2_erin/PREDICTIONS.md."
+}
