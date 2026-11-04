@@ -184,6 +184,10 @@ class Synchro:
         if r.returncode != 0:
             return False, r.stderr
         try:
+            # Les tests de la nouvelle version peuvent avoir besoin de ses nouvelles dépendances.
+            if (copie / "requirements.txt").exists():
+                subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements.txt"],
+                               cwd=copie, capture_output=True, timeout=900)
             t = subprocess.run([sys.executable, "-m", "pytest", "-q", "-x"], cwd=copie, capture_output=True,
                                text=True, encoding="utf-8", errors="replace",
                                env={**os.environ, "PYTHONUTF8": "1"},

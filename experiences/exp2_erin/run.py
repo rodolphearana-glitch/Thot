@@ -72,7 +72,6 @@ def graphe(methode):
 
 
 def resoudre(methode, duree_s, fils):
-    from ortools.sat.python import cp_model
     depart, noeuds = graphe(methode)
     liste = list(noeuds)
     idx = {n: i for i, n in enumerate(liste)}
@@ -88,6 +87,7 @@ def resoudre(methode, duree_s, fils):
         # Certaines rangées ne sont dans aucun six atteignable : impossible, sans même lancer le solveur.
         return {"noeuds": len(liste), "blocs": len(blocs), "rangees_couvertes": couvertes,
                 "statut": "INFEASIBLE", "raison": "rangées inatteignables", "temps_s": 0.0}
+    from ortools.sat.python import cp_model   # seulement quand le solveur sert vraiment
     m = cp_model.CpModel()
     arcs, actif, arc_var = [], {}, {}
     for n in liste:
