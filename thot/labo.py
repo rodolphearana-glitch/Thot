@@ -14,6 +14,7 @@ from .budget import Budget, BudgetDepasse
 from .codage import Codage
 from .confidentialite import masquer
 from .observatoire import CONSIGNE_OBSERVATION, Observatoire
+from .ressources import Ressources
 from .config import Config
 from .journal import Journal, maintenant
 from .selfupdate import AutoMaj, extraire_blocs
@@ -30,6 +31,7 @@ class Labo:
         self.automaj = AutoMaj(self.racine, config.auto_maj)
         self.codage = Codage(config, self.automaj)
         self.observatoire = Observatoire(self.racine)
+        self.ressources = Ressources(config.ressources)
         self._verrous: dict[str, threading.Lock] = {}
         self._actifs = 0
         self.en_cours: dict[str, dict] = {}   # session -> tour en cours (qui parle, depuis quand)
@@ -569,14 +571,14 @@ class Labo:
         duree = int(self.config.experiences.get("duree_max_s", 1800))
         dossier_res = script.parent / "resultats"
         dossier_res.mkdir(exist_ok=True)
-        try:
-            r = subprocess.run([sys.executable, str(script), "--params", json.dumps(params)],
-                               cwd=self.racine, capture_output=True, text=True, timeout=duree,
-                               encoding="utf-8", errors="replace", env=providers.env_enfant())
-            sortie = (r.stdout + r.stderr)[-6000:]
-            ok = r.returncode == 0
-        except subprocess.TimeoutExpired:
-            sortie, ok = f"Interrompue après {duree} s.", False
+        # Lancée par le régulateur : cœurs gardés pour Rodolphe, priorité basse, pause pendant un jeu.
+        rap = self.ressources.lancer([sys.executable, str(script), "--params", json.dumps(params)],
+                                     cwd=self.racine, duree_max_s=duree,
+                                     env=self.ressources.env(providers.env_enfant()))
+        sortie = rap.sortie[-6000:]
+        if rap.interrompu:
+            sortie += f"\n[Thot] Interrompue : {rap.interrompu}."
+        ok = rap.code == 0 and not rap.interrompu
         horo = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         res = {"nom": nom, "parametres": params, "demandeur": demandeur, "session": ident,
                "quand": maintenant(), "reussi": ok, "sortie": sortie}

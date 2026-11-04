@@ -109,6 +109,29 @@ intervalle_minutes = 10
 pousser = true
 branche = "main"
 
+# ---------------------------------------------------------------------------
+# Ressources du PC : ce que les calculs lancés par Thot ont le droit de prendre.
+# ---------------------------------------------------------------------------
+
+[ressources]
+coeurs_reserves = 6       # cœurs physiques toujours gardés pour toi (×2 processeurs logiques)
+reserver = "debut"        # "debut" ou "fin" : quelle moitié du processeur te reste
+priorite = "basse"        # les calculs passent après tout ce que tu fais
+adaptatif = true          # si tu utilises plus que tes cœurs gardés, les calculs t'en rendent
+jeux = []                 # ex. ["eldenring.exe"] : les calculs se mettent en pause pendant ces programmes
+pause_si_jeu = true
+vram_reservee_go = 10     # mémoire de la carte graphique gardée pour toi (modèles locaux)
+
+# ---------------------------------------------------------------------------
+# File de travaux : des calculs déposés sur GitHub (par Claude ou GPT) que ton PC
+# lance seul, bridés par [ressources], puis renvoie sur GitHub. DÉSACTIVÉE par défaut :
+# mets active = true seulement si tu acceptes que du code des IA tourne sans clic.
+# ---------------------------------------------------------------------------
+
+[travaux]
+active = false
+duree_max_s = 28800       # 8 heures au plus par travail (le temps de pause ne compte pas)
+
 [contexte]
 # Taille maximale (en caractères) du contexte envoyé à chaque tour.
 max_caracteres = 120000

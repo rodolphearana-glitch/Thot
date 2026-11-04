@@ -33,6 +33,9 @@ class Config:
     github: dict = field(default_factory=lambda: {"active": True})
     codage: dict = field(default_factory=lambda: {"active": True})
     observation: dict = field(default_factory=dict)
+    ressources: dict = field(default_factory=dict)
+    travaux: dict = field(default_factory=lambda: {"active": False})
+    voix: dict = field(default_factory=dict)
     racine: Path = field(default=RACINE)
     source: Path | None = None
 
@@ -76,6 +79,9 @@ def charger(chemin: Path | None = None, racine: Path | None = None) -> Config:
         github=brut.get("github", {"active": True, "intervalle_minutes": 10, "pousser": True}),
         codage=brut.get("codage", {"active": True, "duree_max_s": 3600}),
         observation=brut.get("observation", {}),
+        ressources=brut.get("ressources", {}),
+        travaux=brut.get("travaux", {"active": False}),
+        voix=brut.get("voix", {}),
         racine=racine,
         source=chemin,
     )
