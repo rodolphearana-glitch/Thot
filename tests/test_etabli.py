@@ -41,3 +41,25 @@ def test_page_et_api_de_l_etabli(config):
     assert c.post("/api/memoire/corriger", json={"ligne": "x"}).status_code == 200
     r = c.post("/api/voix/dire", json={"auteur": "A", "texte": "bonjour"})
     assert r.status_code == 409          # pas de voix Piper ici : la page prend la voix de Windows
+
+
+def test_ecoute_avec_un_faux_whisper(config, monkeypatch):
+    """Le circuit micro → transcription → texte, avec un faux Whisper (le vrai se télécharge sur le PC)."""
+    import sys
+    import types
+
+    class Segment:
+        text = " bonjour Claude "
+
+    class FauxModele:
+        def __init__(self, *a, **k):
+            pass
+
+        def transcribe(self, chemin, language=None, vad_filter=False):
+            assert open(chemin, "rb").read() == b"audio" and language == "fr"
+            return [Segment()], None
+    monkeypatch.setitem(sys.modules, "faster_whisper", types.SimpleNamespace(WhisperModel=FauxModele))
+    c = TestClient(creer_app(Labo(config)))
+    assert c.get("/api/voix").json()["ecoute"] is True
+    r = c.post("/api/voix/ecouter", content=b"audio", headers={"content-type": "audio/webm"})
+    assert r.status_code == 200 and r.json()["texte"] == "bonjour Claude"
