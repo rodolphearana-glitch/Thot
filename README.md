@@ -74,6 +74,29 @@ Les index sont refaits sans IA à chaque synchronisation, de façon déterminist
 
 Lien direct pour une IA extérieure : `https://github.com/rodolphearana-glitch/Thot/blob/main/journal/INDEX.md`
 
+## L'établi, la voix et les calculs sur le PC
+
+Plan et formulations de Rodolphe : [plans/etabli.md](plans/etabli.md).
+
+- **L'établi** (`http://127.0.0.1:8790/etabli`, lien en haut du labo) : à gauche, *ma fenêtre*, toujours là
+  (où en est la session, le dernier mot, une seule question, la saisie et le micro, tes gestes, la mémoire de
+  construction) ; au centre, les **surfaces** que les IA composent pour une tâche (bloc `thot-surface` :
+  curseurs, choix, comparaisons, décisions…). Chaque geste sur une surface revient dans le fil. Une surface qui
+  marche se sauve comme modèle (`modeles/surfaces/`) et se réutilise.
+- **Mode oral** (case dans ma fenêtre) : tours courts, sans liste, au rythme de Rodolphe ; on peut se couper la
+  parole. **Lire à voix haute** : une voix par participant (`[voix.participants]`).
+- **Voix locale**, optionnelle : `pip install -r requirements-voix.txt` dans le `.venv` de Thot. L'écoute passe par
+  Whisper sur le PC (le modèle se télécharge une fois) ; la parole par Piper si une voix est installée, sinon par
+  les voix françaises de Windows. La *pensée* de Claude et de GPT reste chez Anthropic et OpenAI ; seule la
+  locale est entièrement sur le PC.
+- **Ressources** (`[ressources]`) : 6 cœurs gardés pour toi par défaut, calculs en priorité basse, qui te rendent
+  des processeurs quand tu en as besoin et se mettent en pause pendant les programmes listés dans `jeux`.
+- **File de travaux** (`[travaux]`, **éteinte par défaut**) : des calculs déposés dans `travaux/a-faire/` sur
+  GitHub, que le PC lance seul, bridés, puis renvoie dans `travaux/faits/`. Seulement des expériences du dépôt
+  dont les prédictions sont commitées. « Tout arrêter » dans l'établi coupe tout.
+- **Mémoire de construction** (`memoire/construction.md`) : les IA y notent ce qu'elles construisent et pourquoi
+  (bloc `thot-memoire`), en ajout seulement ; elle est relue à chaque tour et tu peux y signaler une ligne fausse.
+
 ## Pour les IA qui contribuent
 
 Lire `AGENTS.md`.
