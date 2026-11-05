@@ -66,6 +66,13 @@ h1{margin:0;font-size:26px} h2{margin:0;font-size:17px}
 .colonnes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .colonnes>div{background:var(--carte-2);border-radius:8px;padding:12px;white-space:pre-wrap}
 .ancienne{opacity:.7}
+.conversation{display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow:auto}
+.bulle{max-width:85%;padding:10px 14px;border-radius:12px;white-space:pre-wrap;line-height:1.45}
+.bulle.moi{align-self:flex-end;background:var(--accent);color:var(--accent-encre)}
+.bulle.ia{align-self:flex-start;background:var(--carte-2)}
+.bulle.labo{align-self:center;background:transparent;color:var(--encre-2);font-size:13px;font-style:italic;padding:2px 8px}
+.bulle .qui{display:block;font-size:12px;font-weight:600;opacity:.75;margin-bottom:2px}
+.bulle.pense{animation:pulse 1.2s infinite}
 .vide{color:var(--encre-2);font-style:italic}
 .puces{display:flex;flex-wrap:wrap;gap:6px}
 .puce{font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid var(--trait);background:var(--carte)}
@@ -82,6 +89,11 @@ a{color:var(--accent)}
   <div class="tete"><div id="pastille" class="pastille"></div><span class="petit">Ma fenêtre · toujours là</span></div>
   <label class="petit" for="session">Session</label>
   <select id="session"></select>
+  <div class="boite">
+    <span class="petit">Nouvelle conversation avec</span>
+    <div id="choix-participants" class="rangee"></div>
+    <div class="rangee"><button id="nouvelle" class="plein">Nouvelle conversation</button></div>
+  </div>
   <p id="etat" class="etat">…</p>
   <div class="boite"><span class="petit">Dernier mot</span><div id="dernier" class="dernier vide">rien encore</div></div>
   <div id="boite-q" class="boite q" hidden>
@@ -116,6 +128,10 @@ a{color:var(--accent)}
 
 <main>
   <div class="surf-tete"><h1>L'établi</h1><span id="maj" class="petit" style="color:var(--encre-2)"></span></div>
+  <section class="carte" aria-live="polite">
+    <div class="surf-tete"><h2>La conversation</h2><span id="conv-info" style="color:var(--encre-2);font-size:13px"></span></div>
+    <div id="conversation" class="conversation"></div>
+  </section>
   <div id="surfaces"></div>
   <section class="carte">
     <div class="surf-tete"><h2>Bibliothèque de surfaces</h2><span style="color:var(--encre-2);font-size:13px">modèles sauvés, réutilisables par les IA</span></div>
@@ -153,8 +169,11 @@ function sansBlocs(t){ return (t||"").replace(/```[\s\S]*?```/g, "").trim(); }
 function avertir(msg){ $("maj").textContent = msg; $("maj").className = "erreur"; }
 
 // -- sessions ------------------------------------------------------------------------------
+let participantsDispo = [];
 async function chargerSessions(){
   const e = await api("/api/etat");
+  participantsDispo = e.participants.map(p => p.nom);
+  dessinerChoix();
   const sel = $("session"), garde = courante || location.hash.slice(1);
   sel.innerHTML = "";
   const tri = e.sessions.slice().sort((a,b) => (a.etat === "terminee") - (b.etat === "terminee") || (b.id > a.id ? 1 : -1));
@@ -167,9 +186,50 @@ $("session").addEventListener("change", () => { courante = $("session").value; d
 async function rafraichir(){
   if(!courante) { $("etat").textContent = "Aucune session. Crée-en une dans le labo classique."; return; }
   try{ session = await api(`/api/sessions/${courante}`); }catch(e){ avertir(e.message); return; }
-  dessinerFenetre(); dessinerSurfaces();
+  dessinerFenetre(); dessinerConversation(); dessinerSurfaces();
   $("maj").className = "petit"; $("maj").textContent = "à jour " + new Date().toLocaleTimeString("fr-FR");
 }
+
+// -- conversation ---------------------------------------------------------------------------
+function dessinerConversation(){
+  const z = $("conversation"), enBas = z.scrollHeight - z.scrollTop - z.clientHeight < 40;
+  const tours = session.tours.filter(t => ["ia","relais","intervention","geste"].includes(t.type) || t.auteur === "Rodolphe"
+    || (t.type === "labo" && /Mode oral|Participants modifiés|Rapport/.test(t.texte))).slice(-30);
+  const bulles = tours.map(t => {
+    const moi = t.auteur === "Rodolphe", labo = t.type === "labo";
+    const texte = labo ? t.texte.split("\n")[0] : sansBlocs(t.texte) || "(bloc spécial)";
+    return el("div", {class: "bulle " + (moi ? "moi" : labo ? "labo" : "ia")}, moi || labo ? null : el("span", {class:"qui", texte:t.auteur}), document.createTextNode(texte));
+  });
+  if(session.tour_en_cours) bulles.push(el("div", {class:"bulle ia pense"}, el("span", {class:"qui", texte:session.tour_en_cours.participant}), document.createTextNode("réfléchit…")));
+  if(!bulles.length) bulles.push(el("p", {class:"vide", texte:"Parle ou écris : la conversation s'affiche ici."}));
+  z.replaceChildren(...bulles);
+  if(enBas || bulles.length < 4) z.scrollTop = z.scrollHeight;
+  $("conv-info").textContent = `${session.participants.join(", ")}${session.oral ? " · mode oral" : ""}${session.etat === "terminee" ? " · terminée : ta prochaine phrase en ouvre une nouvelle" : ""}`;
+}
+function dessinerChoix(){
+  const z = $("choix-participants"); if(z.childElementCount) return;
+  let garde = ["Claude"]; try{ garde = JSON.parse(localStorage.getItem("thot-avec")) || garde }catch(e){}
+  for(const nom of participantsDispo){
+    const id = "avec-" + nom.replace(/\W/g, "_");
+    z.append(el("label", {class:"bascule", for:id}, el("input", {type:"checkbox", id, value:nom, checked: garde.includes(nom)}), document.createTextNode(" " + nom)));
+  }
+}
+function choisis(){
+  const l = [...$("choix-participants").querySelectorAll("input:checked")].map(i => i.value);
+  try{ localStorage.setItem("thot-avec", JSON.stringify(l)) }catch(e){}
+  return l.length ? l : [participantsDispo[0]];
+}
+async function nouvelleConversation(premiere){
+  const s = await api("/api/sessions", {sujet: premiere ? premiere.slice(0, 200) : "Conversation à l'établi",
+    participants: choisis(), tours_max: 200, contextes: []});
+  await api(`/api/sessions/${s.id}/oral`, {oral: true});
+  courante = s.id; dernierTourLu = -1;
+  try{ history.replaceState(null, "", "#" + courante) }catch(e){}
+  if(!$("lire").checked){ $("lire").checked = true; $("lire").onchange({target: $("lire")}); }
+  await chargerSessions(); $("session").value = courante;
+  return s;
+}
+$("nouvelle").onclick = async () => { try{ await nouvelleConversation(""); rafraichir(); }catch(e){ avertir(e.message); } };
 
 function dessinerFenetre(){
   const s = session, tec = s.tour_en_cours;
@@ -272,9 +332,13 @@ function piece(p, titre, deja){
 // -- saisie, tours ----------------------------------------------------------------------------
 async function envoyerTexte(texte){
   texte = (texte || "").trim();
-  if(!texte || !courante) return;
+  if(!texte) return;
   arreterVoix();
   try{
+    // pas de session, ou une session finie / une observation : ta phrase ouvre une nouvelle conversation
+    if(!courante || !session || session.etat === "terminee" || session.genre === "observation"){
+      await nouvelleConversation(texte);
+    }
     session = await api(`/api/sessions/${courante}/intervenir`, {texte});
     $("saisie").value = ""; dessinerFenetre();
     const lu = await api(`/api/sessions/${courante}`);
@@ -292,6 +356,8 @@ async function tourSuivant(){
   try{
     const s = await api(`/api/sessions/${courante}`);
     if(s.etat === "pause") await api(`/api/sessions/${courante}/etat`, {etat:"en_cours"});
+    const nbIA = s.tours.filter(t => t.type === "ia" || t.type === "relais").length;
+    if(nbIA >= s.tours_max) await api(`/api/sessions/${courante}/tours`, {n: 20});
     session = await api(`/api/sessions/${courante}/avancer`, {});
   }catch(e){ avertir(e.message); }
   clearInterval(attente); avance = false; $("tour").disabled = false;
