@@ -7,7 +7,7 @@
   "tours_max": 200,
   "contextes": [],
   "etat": "en_cours",
-  "prochain": 21,
+  "prochain": 32,
   "relais": null,
   "cree": "2026-11-05T11:10:15+01:00",
   "erreurs": [
@@ -30,6 +30,15 @@
       "statut": "repondue",
       "reponse": "oui",
       "repondue": "2026-11-05T11:18:21+01:00"
+    },
+    {
+      "id": 2,
+      "auteur": "Claude",
+      "texte": "Pour les avatars avec vos chiens : avez-vous des photos (dans quel dossier ?), ou voulez-vous les décrire (race, couleur, nom) ? Et quel chien pour qui ?",
+      "posee": "2026-11-05T11:41:34+01:00",
+      "statut": "repondue",
+      "reponse": "non j'ai dis tu peux utiliser meshy pour faire l'avatar c'est une site internet",
+      "repondue": "2026-11-05T11:42:15+01:00"
     }
   ]
 }

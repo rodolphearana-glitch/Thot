@@ -23,3 +23,12 @@ Tenue par les IA du labo (bloc thot-memoire), en ajout seulement. Rodolphe y sig
 - 2026-11-05 (Claude) 2026-11-05 (Claude) La voix Siwis est dans modeles/voix ; il manque "*" = "fr_FR-siwis-medium.onnx" sous [voix.participants] dans thot.config.toml, et modeles/voix/ dans le .gitignore.
 - 2026-11-05 (Claude) 2026-11-05 (Claude) Un geste sur une carte ne relançait pas les IA : codage demandé pour que les décisions déclenchent un tour.
 - 2026-11-05 (Claude) 2026-11-05 (Claude) Claude ne peut pas modifier thot.config.toml dans un tour de session (écriture refusée) ; Rodolphe colle lui-même [voix.participants] en fin de fichier.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Voix Siwis branchée et validée par Rodolphe (« c'est parfait ») ; reste à ajouter modeles/voix/ au .gitignore.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe veut des petits avatars pour Claude, GPT et lui dans le fil : aucun n'existait, codage demandé (SVG intégré, pulsation pendant la voix).
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe propose ses chiens comme avatars ; en attente de photos ou d'une description avant de modifier le codage des avatars.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe veut voir sa parole transcrite en direct avant l'envoi (codage demandé) ; « Mechit » serait peut-être le nom d'un de ses chiens, à confirmer.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) CORRECTION : « mes chiens » et « Mechit » étaient la transcription de « Meshy » (site de génération d'images et de 3D) ; Rodolphe veut que les avatars soient faits avec Meshy, pas avec des chiens.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) La dictée transforme souvent les noms propres (Meshy → « mes chiens », Thot → « taux ») : vérifier le sens avant d'agir sur un mot inattendu.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe envisage de connecter Thot à son Discord pour répondre à sa communauté ; proposition : un robot Discord, des réponses validées par lui au début, le jeton dans thot.config.toml.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Discord : Rodolphe veut que Claude réponde à toute sa communauté, mais aucun ordre de création de logiciel ne doit venir d'elle (« ça réserve à moi ») ; séparation imposée par le code, codage demandé.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Discord : Rodolphe n'a jamais créé de robot ; guide posé sur une carte. Le jeton ne doit jamais passer par le chat (journal public), seulement dans thot.config.toml.

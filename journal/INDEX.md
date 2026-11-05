@@ -9,7 +9,7 @@ Généré automatiquement à partir des journaux (sans IA). Ne pas modifier à l
 
 | session | genre | sujet | participants | état | tours (IA) | relances | recadrages | expériences demandées / exécutées | dernier événement |
 |---|---|---|---|---|---|---|---|---|---|
-| [20261105-111015-bonjour-vous-allez-bien](sessions/20261105-111015-bonjour-vous-allez-bien/session.md) | discussion | Bonjour, vous allez bien ? | Claude | en_cours | 90 (21) | 0 | 0 | 0 / 0 | 2026-11-05 11:37 |
+| [20261105-111015-bonjour-vous-allez-bien](sessions/20261105-111015-bonjour-vous-allez-bien/session.md) | discussion | Bonjour, vous allez bien ? | Claude | en_cours | 133 (32) | 0 | 0 | 0 / 0 | 2026-11-05 11:46 |
 | [20261102-175300-analyse-generale-des-sessions-observees](sessions/20261102-175300-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Claude, Local | terminee | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:53 |
 | [20261102-174910-analyse-generale-des-sessions-observees](sessions/20261102-174910-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Claude, Local | terminee | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:49 |
 | [20261102-174446-analyse-generale-des-sessions-observees](sessions/20261102-174446-analyse-generale-des-sessions-observees/session.md) | observation | Analyse générale des sessions observées : répétitions, contradictions, convergences, trans… | Claude, Local | terminee | 0 (0) | 0 | 0 | 0 / 0 | 2026-11-02 17:44 |

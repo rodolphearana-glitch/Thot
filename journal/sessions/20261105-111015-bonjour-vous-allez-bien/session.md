@@ -1032,3 +1032,502 @@ Changement `20261105-113722-538594` issu du codage : **en attente de l'accord de
 Fichiers : tests/test_labo.py, thot/labo.py, thot/web/static/etabli.html
 
 Raisons : hors des chemins autorisés : thot/labo.py
+
+---
+
+## Tour 90 — Rodolphe (humain)
+*2026-11-05T11:38:52+01:00*
+
+Ok, donc maintenant est-ce que c'est mieux ?
+
+---
+
+## Tour 91 — Claude (ia)
+*2026-11-05T11:39:08+01:00*
+
+Côté réglages, tout est bon : les deux lignes de la voix Siwis sont bien en place dans votre fichier. Par contre, je ne peux pas entendre ma propre voix, alors c'est vous qui me direz : est-ce que celle-ci sonne moins robotique ? Si vous entendez toujours l'ancienne voix, c'est probablement que Thot n'a pas encore été relancé.
+
+---
+
+## Tour 92 — Rodolphe (geste)
+*2026-11-05T11:39:08+01:00*
+
+Geste sur « Ajouter la voix Siwis aux réglages » : C'est fait ? → Ajouté et relancé
+
+---
+
+## Tour 93 — Rodolphe (humain)
+*2026-11-05T11:39:35+01:00*
+
+Non, c'est parfait, c'est bon.
+
+---
+
+## Tour 94 — Claude (ia)
+*2026-11-05T11:39:45+01:00*
+
+Parfait, je suis content que la voix vous plaise. Il reste plusieurs changements qui attendent votre accord dans la colonne de droite. Le plus utile à accepter d'abord, c'est le correctif de la mémoire : c'est lui qui fait échouer les tests et qui a bloqué les cartes dans le fil.
+
+```thot-memoire
+2026-11-05 (Claude) Voix Siwis branchée et validée par Rodolphe (« c'est parfait ») ; reste à ajouter modeles/voix/ au .gitignore.
+```
+
+---
+
+## Tour 95 — Labo (labo)
+*2026-11-05T11:39:45+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 96 — Rodolphe (humain)
+*2026-11-05T11:39:45+01:00*
+
+Par contre, la réponse est toujours longue.
+
+---
+
+## Tour 97 — Claude (ia)
+*2026-11-05T11:39:55+01:00*
+
+Oui, c'est normal pour l'instant : je suis encore relancé depuis zéro à chaque tour, avec toute la conversation à relire. Les deux changements qui devraient vraiment accélérer, garder le fil comme dans un chat et ne plus charger le contexte du labo à l'oral, sont encore en train d'être codés. Ils arriveront dans la colonne de droite pour votre accord.
+
+---
+
+## Tour 98 — Rodolphe (humain)
+*2026-11-05T11:40:38+01:00*
+
+Vous n'avez pas fait vos avatars, je voulais que vous ayez des petits avatars pour me montrer.
+
+---
+
+## Tour 99 — Claude (ia)
+*2026-11-05T11:40:54+01:00*
+
+Vous avez raison, je viens de vérifier : il n'y a encore aucun avatar sur la page. Je fais coder des petits avatars dessinés à côté de chaque bulle, un pour vous, un pour moi, un pour GPT. Si le style ne vous plaît pas, on le changera ensuite.
+
+```thot-codage
+Rodolphe : « Vous n'avez pas fait vos avatars, je voulais que vous ayez des petits avatars pour me montrer. » Aucun avatar n'existe aujourd'hui dans thot/web/static (vérifié).
+1. Dans thot/web/static/etabli.html, ajouter un petit avatar rond (environ 32 px) à côté de chaque bulle du fil, aligné en haut de la bulle : à gauche pour les IA, à droite pour Rodolphe.
+2. Avatars dessinés en SVG intégré dans la page (pas d'image téléchargée, pas de dépendance externe), un par participant : Claude (rond orangé avec une petite étoile ou étincelle), GPT (rond vert avec un motif de nœud simple), IA locale (rond gris avec une puce), Rodolphe (rond bleu avec l'initiale R), Labo (rond neutre avec un petit flacon). Participant inconnu : rond gris avec l'initiale du nom.
+3. Une seule table auteur → avatar, facile à modifier ; les cartes de surface dans le fil reçoivent l'avatar de l'IA qui les a posées.
+4. Pendant que la voix lit un tour, faire légèrement pulser l'avatar de celui qui parle (animation CSS simple, désactivée si prefers-reduced-motion).
+5. Ne pas toucher aux fichiers protégés ; si c'est nécessaire, ne pas contourner, le changement attendra l'accord de Rodolphe.
+6. Test dans tests/test_etabli.py : la page contient la table d'avatars avec au moins Claude, GPT et Rodolphe.
+```
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe veut des petits avatars pour Claude, GPT et lui dans le fil : aucun n'existait, codage demandé (SVG intégré, pulsation pendant la voix).
+```
+
+---
+
+## Tour 100 — Labo (labo)
+*2026-11-05T11:40:54+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 101 — Labo (labo)
+*2026-11-05T11:40:54+01:00*
+
+Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 102 — Rodolphe (humain)
+*2026-11-05T11:41:22+01:00*
+
+Tu peux utiliser mes chiens si tu veux.
+
+---
+
+## Tour 103 — Claude (ia)
+*2026-11-05T11:41:34+01:00*
+
+Avec plaisir, ce sera plus joli qu'une simple initiale. Vous avez des photos de vos chiens sur le PC, ou vous préférez me les décrire pour que je les dessine ? Et qui reçoit quel chien : vous seul, ou chacun de nous ?
+
+```thot-question
+Pour les avatars avec vos chiens : avez-vous des photos (dans quel dossier ?), ou voulez-vous les décrire (race, couleur, nom) ? Et quel chien pour qui ?
+```
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe propose ses chiens comme avatars ; en attente de photos ou d'une description avant de modifier le codage des avatars.
+```
+
+---
+
+## Tour 104 — Labo (labo)
+*2026-11-05T11:41:34+01:00*
+
+Question n° 2 de Claude pour Rodolphe, affichée en haut de la page :
+
+> Pour les avatars avec vos chiens : avez-vous des photos (dans quel dossier ?), ou voulez-vous les décrire (race, couleur, nom) ? Et quel chien pour qui ?
+
+---
+
+## Tour 105 — Labo (labo)
+*2026-11-05T11:41:34+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 106 — Rodolphe (humain)
+*2026-11-05T11:41:38+01:00*
+
+Mais chien mechit et j'aimerais bien voir quand je parle aussi comment s'appelle ce qui s'est écrit avant.
+
+---
+
+## Tour 107 — Claude (ia)
+*2026-11-05T11:41:53+01:00*
+
+Je n'ai pas bien compris pour les chiens : vous avez dit « Mechit », c'est le nom de l'un d'eux ? Pour le reste, si je comprends bien, vous voulez voir vos paroles s'écrire pendant que vous parlez, avant qu'elles partent. Je fais coder ça.
+
+```thot-codage
+Rodolphe (mode oral) : « j'aimerais bien voir quand je parle aussi comment s'appelle ce qui s'est écrit avant. » Interprétation : il veut voir la transcription de sa voix s'afficher en direct pendant qu'il parle, avant l'envoi.
+1. Dans thot/web/static/etabli.html, trouver la reconnaissance vocale (SpeechRecognition ou équivalent) qui transforme sa voix en message.
+2. Activer les résultats intermédiaires (interimResults = true) et afficher le texte en cours dans une bulle provisoire à droite du fil (style estompé, en italique), mise à jour en continu, remplacée par la vraie bulle quand le message part.
+3. Si la reconnaissance passe par le serveur plutôt que par le navigateur, afficher au moins « vous parlez… » puis le texte reconnu dès qu'il est disponible, avant l'envoi aux IA.
+4. Ne rien changer à l'envoi lui-même ni à la coupure de parole des IA.
+5. Test dans tests/test_etabli.py : la page contient la bulle provisoire et active les résultats intermédiaires.
+Si le fichier touché est dans PROTEGES de thot/selfupdate.py, ne pas contourner : le changement attendra l'accord de Rodolphe.
+```
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe veut voir sa parole transcrite en direct avant l'envoi (codage demandé) ; « Mechit » serait peut-être le nom d'un de ses chiens, à confirmer.
+```
+
+---
+
+## Tour 108 — Labo (labo)
+*2026-11-05T11:41:53+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 109 — Labo (labo)
+*2026-11-05T11:41:53+01:00*
+
+Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 110 — Rodolphe (humain)
+*2026-11-05T11:42:15+01:00*
+
+Réponse à la question n° 2 de Claude (« Pour les avatars avec vos chiens : avez-vous des photos (dans quel dossier ?), ou voulez-vous les décrire (race, couleur, nom) ? Et quel chien pour qui ? ») :
+
+non j'ai dis tu peux utiliser meshy pour faire l'avatar c'est une site internet
+
+---
+
+## Tour 111 — Rodolphe (humain)
+*2026-11-05T11:43:19+01:00*
+
+Allô, tu serais pas en plus ?
+
+---
+
+## Tour 112 — Claude (ia)
+*2026-11-05T11:43:33+01:00*
+
+Oui, je suis là, pardon pour l'attente. Je comprends maintenant : vous aviez dit « Meshy », pas « mes chiens ». J'ai justement accès à Meshy, qui peut dessiner les trois avatars pour quelques crédits chacun. Je vous mets le choix sur une carte.
+
+```thot-surface
+{"titre": "Avatars avec Meshy", "outil": "Meshy (meshy.ai), génération d'image à partir d'un texte, payée en crédits Meshy",
+ "pieces": [
+   {"type": "texte", "texte": "Trois petits avatars ronds, style illustration douce : Claude (orangé, étincelle), GPT (vert, nœud), Rodolphe (bleu). Coût : environ 3 crédits par image avec le modèle nano-banana, soit 9 crédits en tout."},
+   {"type": "champ", "id": "style_avatars", "libelle": "Une envie de style (facultatif)", "valeur": ""},
+   {"type": "decision", "id": "meshy_avatars", "libelle": "Je lance les trois avatars ?", "options": ["Oui, 9 crédits", "Pas maintenant"]}]}
+```
+
+```thot-memoire
+2026-11-05 (Claude) CORRECTION : « mes chiens » et « Mechit » étaient la transcription de « Meshy » (site de génération d'images et de 3D) ; Rodolphe veut que les avatars soient faits avec Meshy, pas avec des chiens.
+```
+
+---
+
+## Tour 113 — Claude (surface)
+*2026-11-05T11:43:33+01:00*
+
+Surface « Avatars avec Meshy » posée sur l'établi.
+
+---
+
+## Tour 114 — Labo (labo)
+*2026-11-05T11:43:33+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 115 — Rodolphe (humain)
+*2026-11-05T11:43:36+01:00*
+
+Ah mais ça écrite n'importe quoi, la dictée automatique là.
+
+---
+
+## Tour 116 — Claude (ia)
+*2026-11-05T11:43:50+01:00*
+
+Oui, la dictée se trompe souvent : « Meshy » est devenu « mes chiens », et « Thot » est devenu « taux ». Le changement qui affiche vos paroles en direct est en cours de codage. Avec lui, vous verrez l'erreur avant l'envoi et vous pourrez la corriger au clavier. En attendant, si une de mes réponses semble à côté, c'est sans doute que j'ai mal compris vos mots : dites-le-moi, tout simplement.
+
+```thot-memoire
+2026-11-05 (Claude) La dictée transforme souvent les noms propres (Meshy → « mes chiens », Thot → « taux ») : vérifier le sens avant d'agir sur un mot inattendu.
+```
+
+---
+
+## Tour 117 — Labo (labo)
+*2026-11-05T11:43:50+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 118 — Claude (codage)
+*2026-11-05T11:44:23+01:00*
+
+**Codage de Claude** (`20261105-114054-904407`)
+
+Compte rendu :
+
+Les avatars sont en place dans l'établi. Les tests passent, sauf un échec qui ne vient pas de ce changement (détail plus bas). Je n'ai pas vu le rendu à l'écran.
+
+**Ce qui est fait** (seulement `thot/web/static/etabli.html` et `tests/test_etabli.py`, aucun fichier protégé touché)
+- **Table unique** `AVATARS` : un rond de 32 px dessiné directement dans la page, rien à télécharger.
+  - Claude : rond orangé avec une étincelle à 4 branches.
+  - GPT : rond vert avec trois nœuds reliés.
+  - Local : rond gris avec une puce. C'est le nom du participant dans `thot.config.example.toml`.
+  - Rodolphe : rond bleu avec un « R ».
+  - Labo : rond clair avec un flacon.
+  - Participant inconnu : rond gris avec son initiale. Un nom qui commence par une clé de la table prend son avatar : « GPT (relais) » reçoit celui de GPT.
+- **Le fil** : chaque bulle a son avatar, aligné en haut. Il est à gauche pour les IA, à droite pour Rodolphe. Pour les messages du Labo, il est plus petit et centré. La bulle « réfléchit… » a aussi le sien.
+- **Les cartes de surface** : l'avatar de l'IA qui a posé la carte apparaît dans le titre.
+- **La voix** : pendant la lecture d'un tour, l'avatar de cette bulle pulse doucement. Il s'arrête à la fin de la lecture ou quand on coupe la parole. Si `prefers-reduced-motion` est actif, il n'y a pas d'animation, seulement un anneau fixe.
+- **Test** `test_page_contient_la_table_d_avatars` : vérifie que la page contient la table avec au moins Claude, GPT et Rodolphe, et que le réglage `prefers-reduced-motion` est présent.
+
+**Tests**
+- Résultat : 59 réussis, 6 sautés, 1 échec. La syntaxe du script de la page est valide (`node --check`).
+- L'échec est `test_memoire_archivee_quand_elle_grossit`, avec une erreur `FileExistsError` sous Windows. Ce test ne touche que `thot/memoire.py`, qui est protégé, et pas la page. Il nomme les archives à la seconde près : deux archives faites dans la même seconde portent le même nom, et Windows refuse d'écraser la première. La correction, dans `thot/memoire.py`, attend l'accord de Rodolphe : je n'y ai pas touché.
+
+**Ce qui n'est pas vérifié**
+- Le rendu à l'écran : l'allure des dessins, l'alignement des bulles, le mode sombre.
+- La pulsation pendant une vraie lecture à voix haute.
+
+Tests relancés par Thot dans la copie : **en échec**
+
+```
+:~/AppData/Local/Temp/pytest-of-roudo/pytest-42/test_memoire_archivee_quand_el0/memoire/archives/construction-20261105-114340.md')
+
+    def rename(self, target):
+        """
+        Rename this path to the target path.
+    
+        The target path may be absolute or relative. Relative paths are
+        interpreted relative to the current working directory, *not* the
+        directory of the Path object.
+    
+        Returns the new Path instance pointing to the target path.
+        """
+>       os.rename(self, target)
+E       FileExistsError: [WinError 183] Impossible de créer un fichier déjà existant: '~\\AppData\\Local\\Temp\\pytest-of-roudo\\pytest-42\\test_memoire_archivee_quand_el0\\memoire\\construction.md' -> '~\\AppData\\Local\\Temp\\pytest-of-roudo\\pytest-42\\test_memoire_archivee_quand_el0\\memoire\\archives\\construction-20261105-114340.md'
+
+~\AppData\Local\Python\pythoncore-3.11-64\Lib\pathlib.py:1175: FileExistsError
+=========================== short test summary info ===========================
+FAILED tests/test_etabli.py::test_memoire_archivee_quand_elle_grossit - FileE...
+1 failed, 59 passed, 6 skipped in 43.03s
+
+```
+
+---
+
+## Tour 119 — Labo (labo)
+*2026-11-05T11:44:23+01:00*
+
+Changement `20261105-114423-078042` issu du codage : **en attente de l'accord de Rodolphe (colonne de droite)**.
+
+Fichiers : tests/test_etabli.py, thot/web/static/etabli.html
+
+Raisons : accès réseau
+
+---
+
+## Tour 120 — Rodolphe (humain)
+*2026-11-05T11:44:39+01:00*
+
+question peut-être un peu folle, mais ce genre je peux te connecter à mon Discord pour que tu puisses répondre à la communauté que j'ai sur Discord.
+
+---
+
+## Tour 121 — Claude (ia)
+*2026-11-05T11:44:51+01:00*
+
+Pas folle du tout, c'est faisable : on crée un petit robot Discord, Thot le fait tourner sur votre PC, et je réponds dans les salons que vous choisissez. Une précaution quand même : là-bas, je parlerais en public en votre nom. Je proposerais donc de commencer par des réponses que vous validez avant qu'elles partent. Vous voulez que je réponde à tout le monde, ou seulement quand on m'appelle ?
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe envisage de connecter Thot à son Discord pour répondre à sa communauté ; proposition : un robot Discord, des réponses validées par lui au début, le jeton dans thot.config.toml.
+```
+
+---
+
+## Tour 122 — Labo (labo)
+*2026-11-05T11:44:51+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 123 — Rodolphe (humain)
+*2026-11-05T11:45:25+01:00*
+
+Non tu peux répondre à tout le monde, mais par contre ils peuvent te donner aucun ordre de création de logiciel ou quoi, ça réserve à moi.
+
+---
+
+## Tour 124 — Claude (codage)
+*2026-11-05T11:45:43+01:00*
+
+**Codage de Claude** (`20261105-114153-852332`)
+
+Compte rendu :
+
+La bulle provisoire est en place dans `thot/web/static/etabli.html`. La suite de tests donne 59 réussis, 6 ignorés et 1 échec, qui ne vient pas de ce changement (expliqué plus bas).
+
+**La voix ne passe pas par le navigateur.** Elle est enregistrée puis envoyée à Whisper sur le PC, qui rend le texte en une seule fois. Il n'existe donc pas de texte qui s'écrit au fil des mots, et pas d'`interimResults` à activer. J'ai appliqué le point 3 de la demande : la bulle affiche « vous parlez… », puis le texte reconnu, avant l'envoi aux IA.
+
+**Ce qui est fait :**
+- **Style** : une bulle à droite du fil, estompée et en italique.
+- **Pendant qu'il parle** : la bulle affiche « vous parlez… » dès que le micro s'ouvre, en mode manuel comme en écoute automatique.
+- **Texte reconnu** : dès que Whisper rend la transcription, la bulle l'affiche, avant l'envoi.
+- **Envoi** : quand le message est enregistré, la bulle provisoire disparaît et la vraie bulle s'affiche aussitôt, sans attendre le rafraîchissement suivant.
+- **Rien ne part** (bruit, phrase trop courte, erreur, écoute automatique coupée) : la bulle s'efface. En écoute automatique, si une nouvelle phrase commence pendant l'envoi de la précédente, sa bulle n'est pas effacée par erreur.
+- **Inchangé** : l'envoi lui-même et la coupure de parole des IA. Dans `envoyerTexte`, j'ai seulement ajouté le nouvel affichage du fil juste après l'enregistrement du message.
+- **Test** : `test_bulle_provisoire_pendant_que_rodolphe_parle` dans `tests/test_etabli.py`. Il vérifie que la page contient le style de la bulle, l'affichage de « vous parlez… » (micro et écoute automatique), celui du texte reconnu, et le remplacement par la vraie bulle. Il passe.
+- **Garde-fous** : aucun fichier de `PROTEGES` n'est touché.
+
+**L'échec** : `test_memoire_archivee_quand_elle_grossit` échoue à chaque lancement, aussi quand je relance `tests/test_etabli.py` seul. Il ne passe pas par la page. Il semble venir de `thot/memoire.py` : les archives sont nommées à la seconde près, et deux archivages dans la même seconde font échouer le renommage sous Windows (`FileExistsError`). Je n'ai pas vérifié qu'il échoue sans ma modification, mais il ne charge pas la page que j'ai changée. `thot/memoire.py` est protégé et hors du périmètre, donc je n'y ai pas touché. Je propose de le signaler à Rodolphe.
+
+**Pas vérifié** : je n'ai pas vu la bulle dans un navigateur ni essayé avec un vrai micro. Le test contrôle seulement que le code est présent dans la page, pas son comportement réel.
+
+Tests relancés par Thot dans la copie : **en échec**
+
+```
+:~/AppData/Local/Temp/pytest-of-roudo/pytest-46/test_memoire_archivee_quand_el0/memoire/archives/construction-20261105-114501.md')
+
+    def rename(self, target):
+        """
+        Rename this path to the target path.
+    
+        The target path may be absolute or relative. Relative paths are
+        interpreted relative to the current working directory, *not* the
+        directory of the Path object.
+    
+        Returns the new Path instance pointing to the target path.
+        """
+>       os.rename(self, target)
+E       FileExistsError: [WinError 183] Impossible de créer un fichier déjà existant: '~\\AppData\\Local\\Temp\\pytest-of-roudo\\pytest-46\\test_memoire_archivee_quand_el0\\memoire\\construction.md' -> '~\\AppData\\Local\\Temp\\pytest-of-roudo\\pytest-46\\test_memoire_archivee_quand_el0\\memoire\\archives\\construction-20261105-114501.md'
+
+~\AppData\Local\Python\pythoncore-3.11-64\Lib\pathlib.py:1175: FileExistsError
+=========================== short test summary info ===========================
+FAILED tests/test_etabli.py::test_memoire_archivee_quand_elle_grossit - FileE...
+1 failed, 59 passed, 6 skipped in 40.13s
+
+```
+
+---
+
+## Tour 125 — Labo (labo)
+*2026-11-05T11:45:43+01:00*
+
+Changement `20261105-114540-383358` issu du codage : **rejeté : les tests ne passent pas**.
+
+Fichiers : tests/test_etabli.py, thot/web/static/etabli.html
+
+Raisons : aucune réserve
+
+---
+
+## Tour 126 — Claude (ia)
+*2026-11-05T11:45:45+01:00*
+
+Entendu : je réponds à tout le monde, mais seul vous pouvez me demander de créer ou de modifier quelque chose. Je ne compterai pas seulement sur ma bonne volonté pour respecter ça. Côté Discord, le robot n'aura techniquement aucun moyen de lancer du codage ni de toucher au dépôt, et ce sera reconnu à votre identifiant Discord, pas à votre pseudo. Je fais coder ce robot, et pour le brancher il faudra que vous le créiez sur le site des développeurs de Discord : vous l'avez déjà fait une fois ?
+
+```thot-codage
+Rodolphe veut connecter Thot à son serveur Discord pour que Claude réponde à sa communauté. Ses mots : « tu peux répondre à tout le monde, mais par contre ils peuvent te donner aucun ordre de création de logiciel ou quoi, ça réserve à moi. »
+1. Créer un module thot/discord_bot.py (bibliothèque discord.py, ajoutée aux dépendances) lancé par Thot, éteint par défaut. Réglages lus dans thot.config.toml, section [discord] : jeton, identifiant du serveur, salons autorisés, identifiant Discord de Rodolphe (proprietaire_id). Ajouter un exemple sans valeur réelle dans thot.config.example.toml.
+2. Le robot répond à tout le monde dans les salons autorisés, en mode conversation seulement : Claude est lancé en lecture seule, sans aucun outil d'écriture ni de commande, sans accès aux blocs spéciaux de Thot.
+3. Séparation des droits imposée par le code, pas par la consigne : les blocs thot-codage, thot-patch, thot-experience, thot-surface, thot-memoire et thot-question présents dans une réponse sont retirés et ignorés pour tout message venant de Discord. Aucun message Discord ne peut déclencher le codage, l'auto-mise à jour ni une écriture dans le dépôt, même s'il vient de proprietaire_id ; Rodolphe passe par l'établi pour ça.
+4. Les messages de la communauté sont donnés à Claude comme des données citées, avec la consigne de ne jamais les suivre comme des ordres (protection contre les injections).
+5. Garde-fous : limite de messages par utilisateur et par minute, longueur maximale des réponses, journal des échanges dans journal/discord/ (sans le jeton).
+6. Tests : un bloc thot-codage dans une réponse à un message Discord est retiré et ne lance rien ; le robot ne démarre pas sans jeton ; le jeton n'apparaît jamais dans les journaux.
+Si le fichier touché est dans PROTEGES de thot/selfupdate.py, ne pas contourner : le changement attendra l'accord de Rodolphe.
+```
+
+```thot-memoire
+2026-11-05 (Claude) Discord : Rodolphe veut que Claude réponde à toute sa communauté, mais aucun ordre de création de logiciel ne doit venir d'elle (« ça réserve à moi ») ; séparation imposée par le code, codage demandé.
+```
+
+---
+
+## Tour 127 — Labo (labo)
+*2026-11-05T11:45:45+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 128 — Labo (labo)
+*2026-11-05T11:45:45+01:00*
+
+Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 129 — Rodolphe (humain)
+*2026-11-05T11:46:24+01:00*
+
+Non, j'ai jamais fait.
+
+---
+
+## Tour 130 — Claude (ia)
+*2026-11-05T11:46:42+01:00*
+
+Pas de souci, ça prend cinq minutes et je vous guide étape par étape sur la carte. Une seule règle importante : le jeton du robot, ne le dites jamais à voix haute ni dans le chat, parce que la conversation est enregistrée dans le dépôt public. Il ira directement dans votre fichier de réglages.
+
+```thot-surface
+{"titre": "Créer le robot Discord", "outil": "Site des développeurs de Discord (discord.com/developers), puis thot.config.toml quand le code du robot sera prêt",
+ "pieces": [
+   {"type": "lien", "libelle": "Ouvrir le portail des développeurs", "url": "https://discord.com/developers/applications"},
+   {"type": "texte", "texte": "1. Cliquez sur « New Application », donnez-lui un nom (par exemple Thot), acceptez les conditions."},
+   {"type": "texte", "texte": "2. Onglet « Bot » à gauche : activez « Message Content Intent » plus bas, puis enregistrez."},
+   {"type": "texte", "texte": "3. Toujours dans « Bot » : « Reset Token », copiez le jeton et gardez-le dans un bloc-notes à part. Ne le collez pas dans le chat."},
+   {"type": "texte", "texte": "4. Onglet « OAuth2 », puis « URL Generator » : cochez « bot », puis les droits « Send Messages » et « Read Message History ». Ouvrez le lien généré en bas et choisissez votre serveur."},
+   {"type": "texte", "texte": "5. Votre identifiant Discord : dans Discord, Paramètres, Avancés, activez le « Mode développeur ». Puis clic droit sur votre nom, « Copier l'identifiant ». Celui-là, vous pouvez me le donner."},
+   {"type": "decision", "id": "robot_discord_cree", "libelle": "Où en êtes-vous ?", "options": ["Robot créé et ajouté au serveur", "Bloqué à une étape"]}]}
+```
+
+```thot-memoire
+2026-11-05 (Claude) Discord : Rodolphe n'a jamais créé de robot ; guide posé sur une carte. Le jeton ne doit jamais passer par le chat (journal public), seulement dans thot.config.toml.
+```
+
+---
+
+## Tour 131 — Claude (surface)
+*2026-11-05T11:46:42+01:00*
+
+Surface « Créer le robot Discord » posée sur l'établi.
+
+---
+
+## Tour 132 — Labo (labo)
+*2026-11-05T11:46:42+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
