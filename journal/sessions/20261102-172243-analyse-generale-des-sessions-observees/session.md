@@ -1,6 +1,6 @@
 # Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.
 
-Session `20261102-172243-analyse-generale-des-sessions-observees` · créée 2026-11-02T17:22:43+01:00 · état : en_cours
+Session `20261102-172243-analyse-generale-des-sessions-observees` · créée 2026-11-02T17:22:43+01:00 · état : pause
 Participants : GPT, Local
 
 ---
@@ -129,3 +129,73 @@ Sources lues : commit `6effc05`, fichiers `AGENTS.md`, formulations originales, 
 ### Expériences proposées pour vérifier ces conclusions  
 [SUGGESTION] Sur plusieurs sessions, relever chaque correction explicite, puis vérifier séparément sa conservation dans les paramètres exécutés et dans les résumés ultérieurs. Cela testerait l'hypothèse de persistance inégale.  
 [SUGGESTION] Comparer des analyses produites avant lecture des conclusions des autres à celles produites après, en préinscrivant les critères : erreurs détectées, citations exactes et conclusions non étayées. Aucune expérience n'est déclenchée dans cette observation.
+
+---
+
+## Tour 2 — Rodolphe (humain)
+*2026-11-05T10:57:13+01:00*
+
+Bonjour, vous allez bien ?
+
+---
+
+## Tour 3 — GPT (ia)
+*2026-11-05T10:57:26+01:00*
+
+Bonjour Rodolphe. Je suis disponible pour poursuivre l’observation avec vous. Comment vas-tu ?
+
+---
+
+## Tour 4 — Rodolphe (humain)
+*2026-11-05T10:57:26+01:00*
+
+Bonjour, vous allez bien ?
+
+---
+
+## Tour 5 — Labo (labo)
+*2026-11-05T10:57:26+01:00*
+
+Mode oral activé : tours courts, sans liste, au rythme de Rodolphe.
+
+---
+
+## Tour 6 — Rodolphe (humain)
+*2026-11-05T10:57:26+01:00*
+
+un deux un deux
+
+---
+
+## Tour 7 — Rodolphe (humain)
+*2026-11-05T10:57:38+01:00*
+
+et 2x2
+
+---
+
+## Tour 8 — Rodolphe (humain)
+*2026-11-05T10:57:42+01:00*
+
+Ça y crie pas ?
+
+---
+
+## Tour 9 — Rodolphe (humain)
+*2026-11-05T10:58:17+01:00*
+
+Ah mais si tu m'entends en fait, là c'est ça mais je vois pas où tu me réponds.
+
+---
+
+## Tour 10 — Rodolphe (humain)
+*2026-11-05T10:58:53+01:00*
+
+Du coup, est-ce que tu peux changer l'interface et mettre ce que j'écris qui t'affiche bien sûr au milieu comme dans un chat classique et tes réponses aussi.
+
+---
+
+## Tour 11 — Rodolphe (humain)
+*2026-11-05T10:58:57+01:00*
+
+et d'ailleurs je t'entends pas en vocale

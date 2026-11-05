@@ -7,14 +7,51 @@
   ],
   "tours_max": 4,
   "contextes": [],
-  "etat": "en_cours",
-  "prochain": 2,
+  "etat": "pause",
+  "prochain": 3,
   "relais": null,
   "cree": "2026-11-02T17:22:43+01:00",
-  "erreurs": [],
+  "erreurs": [
+    {
+      "quand": "2026-11-05T10:57:31+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    },
+    {
+      "quand": "2026-11-05T10:57:35+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    },
+    {
+      "quand": "2026-11-05T10:57:42+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    },
+    {
+      "quand": "2026-11-05T10:57:47+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    },
+    {
+      "quand": "2026-11-05T10:58:22+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    },
+    {
+      "quand": "2026-11-05T10:58:57+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    },
+    {
+      "quand": "2026-11-05T10:59:01+01:00",
+      "participant": "Local",
+      "erreur": "LM Studio injoignable à http://localhost:1234 : lance son serveur local (« API des modèles locaux » → serveur en cours d'exécution)."
+    }
+  ],
   "genre": "observation",
   "sources": [
     "20261102-151303-lisez-les-lettres-08-et-09-et-dites-moi"
   ],
-  "relances": 0
+  "relances": 0,
+  "oral": true
 }
