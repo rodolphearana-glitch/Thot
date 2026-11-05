@@ -7,10 +7,16 @@
   "tours_max": 200,
   "contextes": [],
   "etat": "en_cours",
-  "prochain": 16,
+  "prochain": 21,
   "relais": null,
   "cree": "2026-11-05T11:10:15+01:00",
-  "erreurs": [],
+  "erreurs": [
+    {
+      "quand": "2026-11-05T11:34:42+01:00",
+      "participant": "Claude",
+      "erreur": "Tour interrompu par Rodolphe."
+    }
+  ],
   "genre": "discussion",
   "sources": [],
   "relances": 0,

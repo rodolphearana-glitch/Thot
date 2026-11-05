@@ -779,3 +779,256 @@ Geste sur « Télécharger la voix Siwis vous-même » : C'est fait ? → Télé
 *2026-11-05T11:24:12+01:00*
 
 Ok, celui c'est téléchargé, fin si oui.
+
+---
+
+## Tour 68 — Rodolphe (humain)
+*2026-11-05T11:31:37+01:00*
+
+Désolé, j'ai une coupure de courant.
+
+---
+
+## Tour 69 — Claude (ia)
+*2026-11-05T11:31:54+01:00*
+
+Pas de souci pour la coupure, on reprend tranquillement. Je viens de regarder, et le dossier des voix est vide de mon côté : avec la coupure, le téléchargement n'est peut-être pas allé au bout, ou bien il est parti dans un autre dossier. Vous pouvez relancer les commandes de la carte depuis le dossier Thot-main ?
+
+---
+
+## Tour 70 — Rodolphe (humain)
+*2026-11-05T11:31:55+01:00*
+
+Désolé, j'ai eu une coupure de courant.
+
+---
+
+## Tour 71 — Claude (ia)
+*2026-11-05T11:32:07+01:00*
+
+C'est rien, Rodolphe, on reprend où on en était. Je viens de vérifier : la voix Siwis n'est toujours pas dans le dossier des voix, la coupure a sans doute interrompu le téléchargement. Quand vous serez prêt, relancez les commandes de la carte depuis le dossier Thot-main, et dites-moi quand c'est fait.
+
+---
+
+## Tour 72 — Rodolphe (geste)
+*2026-11-05T11:33:21+01:00*
+
+Geste sur « Télécharger la voix Siwis vous-même » : C'est fait ? → Téléchargée
+
+---
+
+## Tour 73 — Rodolphe (humain)
+*2026-11-05T11:33:54+01:00*
+
+J'ai cliqué en plus sur le truc téléchargé sur ta vignette mais ça ne te relance pas, c'est pas normal.
+
+---
+
+## Tour 74 — Claude (ia)
+*2026-11-05T11:34:27+01:00*
+
+Vous avez raison, Rodolphe : aujourd'hui un clic sur une carte s'inscrit dans la conversation mais ne me redonne pas la parole, il faut que vous parliez. Je fais coder ça pour qu'une décision sur une carte me relance. Bonne nouvelle quand même : la voix Siwis est bien arrivée, il ne reste qu'une ligne à ajouter dans votre configuration, je vous la mets sur la carte.
+
+```thot-surface
+{"titre": "Brancher la voix Siwis", "outil": "thot.config.toml (votre fichier de réglages, non versionné), section [voix.participants]",
+ "pieces": [
+   {"type": "texte", "texte": "La voix est bien dans modeles/voix. Ouvrez thot.config.toml et ajoutez ces deux lignes (créez la section si elle n'existe pas), puis relancez Thot :"},
+   {"type": "texte", "texte": "[voix.participants]"},
+   {"type": "texte", "texte": "\"*\" = \"fr_FR-siwis-medium.onnx\""},
+   {"type": "texte", "texte": "Attention : modeles/ n'est pas ignoré par Git, la synchro risque d'envoyer ce fichier de 60 Mo sur GitHub. Il faudrait ajouter modeles/voix/ au .gitignore (fichier protégé, votre accord est nécessaire)."},
+   {"type": "decision", "id": "siwis_branchee", "libelle": "C'est fait ?", "options": ["Ajouté et relancé", "Je ne trouve pas le fichier"]}]}
+```
+
+```thot-codage
+Rodolphe : « J'ai cliqué en plus sur le truc téléchargé sur ta vignette mais ça ne te relance pas, c'est pas normal. »
+Aujourd'hui un geste sur une surface (tour « Rodolphe (geste) ») est ajouté au fil mais ne déclenche pas le tour suivant des IA ; seul un message humain le fait.
+1. Trouver où l'établi enregistre un geste (route API appelée par etabli.html quand une pièce change) et où un message humain déclenche le tour des IA.
+2. Un geste sur une pièce de type "decision" ou "choix" doit déclencher le tour des IA comme un message humain. Les curseurs, interrupteurs et champs ne déclenchent rien seuls (on ne relance pas à chaque mouvement de curseur) ; leur valeur part avec le prochain message ou la prochaine décision.
+3. Si un tour d'IA est déjà en cours, ne pas en lancer un second : le geste sera vu au tour suivant.
+4. Tests : une décision déclenche un tour ; un curseur n'en déclenche pas ; pas de double tour si une IA parle déjà.
+Si le fichier touché est dans PROTEGES de thot/selfupdate.py, ne pas contourner : le changement attendra l'accord de Rodolphe.
+```
+
+```thot-memoire
+2026-11-05 (Claude) La voix Siwis est dans modeles/voix ; il manque "*" = "fr_FR-siwis-medium.onnx" sous [voix.participants] dans thot.config.toml, et modeles/voix/ dans le .gitignore.
+2026-11-05 (Claude) Un geste sur une carte ne relançait pas les IA : codage demandé pour que les décisions déclenchent un tour.
+```
+
+---
+
+## Tour 75 — Claude (surface)
+*2026-11-05T11:34:27+01:00*
+
+Surface « Brancher la voix Siwis » posée sur l'établi.
+
+---
+
+## Tour 76 — Labo (labo)
+*2026-11-05T11:34:27+01:00*
+
+Claude a noté 2 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 77 — Labo (labo)
+*2026-11-05T11:34:27+01:00*
+
+Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 78 — Rodolphe (humain)
+*2026-11-05T11:34:27+01:00*
+
+J'ai cliqué en plus sur le truc téléchargé sur ta vignette mais ça ne te relance pas, c'est pas normal.
+
+---
+
+## Tour 79 — Rodolphe (humain)
+*2026-11-05T11:34:27+01:00*
+
+du coup le téléchargement est fait normalement
+
+---
+
+## Tour 80 — Rodolphe (humain)
+*2026-11-05T11:34:27+01:00*
+
+du coup le téléchargement est fait normalement
+
+---
+
+## Tour 81 — Rodolphe (humain)
+*2026-11-05T11:35:59+01:00*
+
+Tu peux pas modifier le fietto même pour rajouter les lignes parce que moi je l'ouvre mais je sais pas où je rajoute ce que tu me dis
+
+---
+
+## Tour 82 — Claude (ia)
+*2026-11-05T11:36:26+01:00*
+
+J'ai essayé, mais je n'ai pas le droit de modifier ce fichier. Le plus simple : descendez tout en bas du fichier, après la ligne openai, sautez une ligne, collez les deux lignes de la carte, enregistrez et relancez Thot. L'endroit n'a pas d'importance, du moment qu'elles sont à la fin.
+
+```thot-surface
+{"titre": "Où coller les deux lignes", "outil": "thot.config.toml, tout en bas du fichier",
+ "pieces": [
+   {"type": "texte", "texte": "Le fichier se termine par : [cles] puis anthropic = \"\" puis openai = \"\". Juste après, sautez une ligne et collez :"},
+   {"type": "texte", "texte": "[voix.participants]"},
+   {"type": "texte", "texte": "\"*\" = \"fr_FR-siwis-medium.onnx\""},
+   {"type": "texte", "texte": "Enregistrez, puis relancez Thot."},
+   {"type": "decision", "id": "siwis_collee", "libelle": "C'est fait ?", "options": ["Collé et relancé", "Ça ne marche pas"]}]}
+```
+
+```thot-memoire
+2026-11-05 (Claude) Claude ne peut pas modifier thot.config.toml dans un tour de session (écriture refusée) ; Rodolphe colle lui-même [voix.participants] en fin de fichier.
+```
+
+---
+
+## Tour 83 — Claude (surface)
+*2026-11-05T11:36:26+01:00*
+
+Surface « Où coller les deux lignes » posée sur l'établi.
+
+---
+
+## Tour 84 — Labo (labo)
+*2026-11-05T11:36:26+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 85 — Rodolphe (humain)
+*2026-11-05T11:36:26+01:00*
+
+Tu peux pas modifier le fietto même pour rajouter les lignes. Parce que moi je l'ouvre mais je sais pas où je rajoute ce que tu me dis.
+
+---
+
+## Tour 86 — Claude (ia)
+*2026-11-05T11:36:55+01:00*
+
+Je viens de réessayer et c'est encore refusé : je n'ai pas le droit d'écrire dans ce fichier. Le plus simple, c'est d'aller tout en bas avec la touche Contrôle et la touche Fin, d'appuyer deux fois sur Entrée et de coller les deux lignes. Sinon, collez la commande de la carte dans PowerShell et elle les ajoute toute seule.
+
+```thot-surface
+{"titre": "Ajouter la voix Siwis aux réglages", "outil": "thot.config.toml (dossier Thot-main), à la main ou avec PowerShell",
+ "pieces": [
+   {"type": "texte", "texte": "Première façon, à la main dans le Bloc-notes : appuyez sur Ctrl + Fin pour aller tout en bas (après openai = \"\"), puis deux fois sur Entrée. Collez ces deux lignes, puis Ctrl + S pour enregistrer :"},
+   {"type": "texte", "texte": "[voix.participants]"},
+   {"type": "texte", "texte": "\"*\" = \"fr_FR-siwis-medium.onnx\""},
+   {"type": "texte", "texte": "Deuxième façon, sans ouvrir le fichier : dans PowerShell, depuis le dossier Thot-main, collez cette ligne :"},
+   {"type": "texte", "texte": "Add-Content -Path thot.config.toml -Value '', '[voix.participants]', '\"*\" = \"fr_FR-siwis-medium.onnx\"' -Encoding UTF8"},
+   {"type": "texte", "texte": "Ensuite, relancez Thot."},
+   {"type": "decision", "id": "siwis_reglee", "libelle": "C'est fait ?", "options": ["Ajouté et relancé", "Ça ne marche pas"]}]}
+```
+
+---
+
+## Tour 87 — Claude (surface)
+*2026-11-05T11:36:55+01:00*
+
+Surface « Ajouter la voix Siwis aux réglages » posée sur l'établi.
+
+---
+
+## Tour 88 — Claude (codage)
+*2026-11-05T11:37:22+01:00*
+
+**Codage de Claude** (`20261105-113427-888195`)
+
+Compte rendu :
+
+Une décision ou un choix sur une surface relance maintenant les IA, comme un message. Les 3 nouveaux tests passent ; la suite complète donne 61 réussis, 6 ignorés et 1 échec qui ne vient pas de ce changement (détail plus bas).
+
+**Comment c'est fait**
+- J'ai trouvé pourquoi le clic ne relançait rien : pour un message, c'est la page de l'établi qui déclenche le tour des IA juste après l'envoi. Pour un geste, elle se contentait de l'ajouter au fil.
+- **`thot/labo.py`, fonction `geste`** : la réponse dit maintenant s'il faut relancer. C'est oui seulement si la pièce est une « decision » ou un « choix » et qu'aucune IA ne parle déjà. Pour connaître le type de la pièce, le serveur la retrouve dans la dernière surface du même titre ; il ne fait pas confiance à ce que la page envoie. Curseurs, interrupteurs et champs entrent dans le fil sans relancer : leur valeur part avec le prochain message ou la prochaine décision.
+- **`thot/web/static/etabli.html`** : après un geste, la page lance le tour suivant si le serveur a dit oui et si elle n'en a pas déjà un en route. Contrairement à un message, une décision ne coupe pas la parole à l'IA en train de répondre : elle sera vue au tour suivant.
+- `thot/web/app.py` est protégé et je n'y ai pas touché ; ce n'était pas nécessaire, sa route transmet déjà la réponse de `labo.geste`.
+
+**Tests**, dans `tests/test_labo.py` :
+- une décision et un choix relancent ;
+- un curseur, un interrupteur, un champ ou une surface inconnue ne relancent pas, mais le geste est bien dans le fil ;
+- pas de double tour quand une IA parle déjà : pas de relance, et `avancer` n'en lance pas un second.
+
+**L'échec** : `tests/test_etabli.py::test_memoire_archivee_quand_elle_grossit` échoue aussi quand j'enlève mes modifications. La mémoire est archivée sous un nom à la seconde près, et l'archive de ce nom existe déjà quand le test passe deux fois dans la même seconde. C'est dans `thot/memoire.py`, qui est protégé : je ne l'ai pas corrigé, ce sera à Rodolphe de décider.
+
+**Pas vérifié** : je n'ai pas vu le comportement dans un vrai navigateur. Le changement de la page n'est testé par aucun test automatique ; seule la partie serveur l'est.
+
+Tests relancés par Thot dans la copie : **en échec**
+
+```
+:~/AppData/Local/Temp/pytest-of-roudo/pytest-38/test_memoire_archivee_quand_el0/memoire/archives/construction-20261105-113642.md')
+
+    def rename(self, target):
+        """
+        Rename this path to the target path.
+    
+        The target path may be absolute or relative. Relative paths are
+        interpreted relative to the current working directory, *not* the
+        directory of the Path object.
+    
+        Returns the new Path instance pointing to the target path.
+        """
+>       os.rename(self, target)
+E       FileExistsError: [WinError 183] Impossible de créer un fichier déjà existant: '~\\AppData\\Local\\Temp\\pytest-of-roudo\\pytest-38\\test_memoire_archivee_quand_el0\\memoire\\construction.md' -> '~\\AppData\\Local\\Temp\\pytest-of-roudo\\pytest-38\\test_memoire_archivee_quand_el0\\memoire\\archives\\construction-20261105-113642.md'
+
+~\AppData\Local\Python\pythoncore-3.11-64\Lib\pathlib.py:1175: FileExistsError
+=========================== short test summary info ===========================
+FAILED tests/test_etabli.py::test_memoire_archivee_quand_elle_grossit - FileE...
+1 failed, 61 passed, 6 skipped in 41.30s
+
+```
+
+---
+
+## Tour 89 — Labo (labo)
+*2026-11-05T11:37:22+01:00*
+
+Changement `20261105-113722-538594` issu du codage : **en attente de l'accord de Rodolphe (colonne de droite)**.
+
+Fichiers : tests/test_labo.py, thot/labo.py, thot/web/static/etabli.html
+
+Raisons : hors des chemins autorisés : thot/labo.py

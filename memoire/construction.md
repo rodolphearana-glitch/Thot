@@ -20,3 +20,6 @@ Tenue par les IA du labo (bloc thot-memoire), en ajout seulement. Rodolphe y sig
 - 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe veut que Claude garde le contexte comme dans un chat : codage demandé pour reprendre la conversation Claude Code (--resume) au lieu de tout relancer à chaque tour.
 - 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe : le contexte complet de Thot ne doit être relu que s'il y a besoin, avec des règles pour ça ; il signale un « petit couac » de mélange avec le projet Thot (à préciser).
 - 2026-11-05 (Claude) 2026-11-05 (Claude) Rodolphe : la conversation orale est un fonctionnement à part, une discussion avec Claude et GPT sans relire le contexte des sessions de Thot (codage demandé).
+- 2026-11-05 (Claude) 2026-11-05 (Claude) La voix Siwis est dans modeles/voix ; il manque "*" = "fr_FR-siwis-medium.onnx" sous [voix.participants] dans thot.config.toml, et modeles/voix/ dans le .gitignore.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Un geste sur une carte ne relançait pas les IA : codage demandé pour que les décisions déclenchent un tour.
+- 2026-11-05 (Claude) 2026-11-05 (Claude) Claude ne peut pas modifier thot.config.toml dans un tour de session (écriture refusée) ; Rodolphe colle lui-même [voix.participants] en fin de fichier.
