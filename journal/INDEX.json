@@ -331,6 +331,31 @@
       "sujet": "Analyse générale des sessions observées : répétitions, contradictions, convergences, transformations de cadre, prédictions et résultats.",
       "tours": 0,
       "tours_ia": 0
+    },
+    {
+      "contextes": [],
+      "cree": "2026-11-05T11:10:15+01:00",
+      "dernier_evenement": "2026-11-05T11:19:20+01:00",
+      "etat": "en_cours",
+      "experiences_demandees": 0,
+      "experiences_executees": 0,
+      "fichiers": {
+        "etat": "sessions/20261105-111015-bonjour-vous-allez-bien/session.json",
+        "lisible": "sessions/20261105-111015-bonjour-vous-allez-bien/session.md",
+        "tours": "sessions/20261105-111015-bonjour-vous-allez-bien/tours.jsonl"
+      },
+      "genre": "discussion",
+      "id": "20261105-111015-bonjour-vous-allez-bien",
+      "modifications_proposees": 4,
+      "participants": [
+        "Claude"
+      ],
+      "recadrages": 0,
+      "relances": 0,
+      "sources": [],
+      "sujet": "Bonjour, vous allez bien ?",
+      "tours": 48,
+      "tours_ia": 11
     }
   ]
 }

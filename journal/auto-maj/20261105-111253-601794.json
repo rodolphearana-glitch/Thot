@@ -1,0 +1,17 @@
+{
+  "id": "20261105-111253-601794",
+  "auteur": "Claude",
+  "session": "20261105-111015-bonjour-vous-allez-bien",
+  "justification": "Ah, pardon, je m'étais trompé : c'est donc Piper qui parle, et il sonne quand même robotique. Mon changement de vitesse a été refusé à cause d'un test sans rapport : la mémoire qui s'archive deux fois dans la même seconde. Je corrige les deux d'un coup. Pour le timbre, la prochaine étape serait d'essayer une autre voix française de Piper.",
+  "propose": "2026-11-05T11:12:53+01:00",
+  "fichiers": [
+    "thot/memoire.py",
+    "thot/web/static/etabli.html"
+  ],
+  "raisons": [
+    "fichier protégé : thot/memoire.py"
+  ],
+  "patch": "diff --git a/thot/memoire.py b/thot/memoire.py\n--- a/thot/memoire.py\n+++ b/thot/memoire.py\n@@ -34,7 +34,7 @@ class Memoire:\n         if self.fichier.exists() and self.fichier.stat().st_size > MAX_FICHIER:\n             arch = self.dossier / \"archives\"\n             arch.mkdir(parents=True, exist_ok=True)\n-            nom = f\"construction-{datetime.now().strftime('%Y%m%d-%H%M%S')}.md\"\n+            nom = f\"construction-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.md\"   # deux archives dans la même seconde ne se marchent plus dessus\n             self.fichier.rename(arch / nom)\n             self.fichier.write_text(ENTETE + f\"(Lignes précédentes : memoire/archives/{nom})\\n\\n\", encoding=\"utf-8\")\n \ndiff --git a/thot/web/static/etabli.html b/thot/web/static/etabli.html\n--- a/thot/web/static/etabli.html\n+++ b/thot/web/static/etabli.html\n@@ -502,7 +502,7 @@ async function suivantVoix(){\n       const r = await fetch(\"/api/voix/dire\", {method:\"POST\", headers:{\"content-type\":\"application/json\"}, body: JSON.stringify({auteur, texte})});\n       if(!r.ok) throw new Error(r.statusText);\n       const url = URL.createObjectURL(await r.blob());\n-      audioEnCours = new Audio(url); audioEnCours.onended = fin; audioEnCours.onerror = fin; audioEnCours.play(); return;\n+      audioEnCours = new Audio(url); audioEnCours.playbackRate = infoVoix?.vitesse || 1.25; audioEnCours.onended = fin; audioEnCours.onerror = fin; audioEnCours.play(); return;\n     }catch(e){ /* repli sur la voix du navigateur */ }\n   }\n   if(!window.speechSynthesis){ fin(); return; }\n-  const u = new SpeechSynthesisUtterance(texte); u.lang = \"fr-FR\";\n-  const voix = speechSynthesis.getVoices().filter(v => v.lang.startsWith(\"fr\") && v.localService);\n+  const u = new SpeechSynthesisUtterance(texte); u.lang = \"fr-FR\"; u.rate = infoVoix?.vitesse || 1.25;\n+  const voix = speechSynthesis.getVoices().filter(v => v.lang.startsWith(\"fr\") && v.localService)\n+    .sort((a, b) => /natural|neural/i.test(b.name) - /natural|neural/i.test(a.name));   // les voix « naturelles » locales d'abord\n   const choix = infoVoix?.voix?.[auteur];                       // réglage par participant dans la config\n",
+  "statut": "en_attente",
+  "historique": []
+}

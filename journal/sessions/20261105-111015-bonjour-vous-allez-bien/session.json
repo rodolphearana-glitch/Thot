@@ -1,0 +1,29 @@
+{
+  "id": "20261105-111015-bonjour-vous-allez-bien",
+  "sujet": "Bonjour, vous allez bien ?",
+  "participants": [
+    "Claude"
+  ],
+  "tours_max": 200,
+  "contextes": [],
+  "etat": "en_cours",
+  "prochain": 11,
+  "relais": null,
+  "cree": "2026-11-05T11:10:15+01:00",
+  "erreurs": [],
+  "genre": "discussion",
+  "sources": [],
+  "relances": 0,
+  "oral": true,
+  "questions": [
+    {
+      "id": 1,
+      "auteur": "Claude",
+      "texte": "Voulez-vous que Claude Code ait le droit, quand Thot le lance, de télécharger depuis huggingface.co et d'écrire dans le dossier modeles ? Sinon, vous lancez les commandes de la carte vous-même.",
+      "posee": "2026-11-05T11:18:00+01:00",
+      "statut": "repondue",
+      "reponse": "oui",
+      "repondue": "2026-11-05T11:18:21+01:00"
+    }
+  ]
+}
