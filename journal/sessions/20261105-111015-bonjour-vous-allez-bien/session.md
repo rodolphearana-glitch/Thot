@@ -765,3 +765,17 @@ Changement `20261105-112311-784189` issu du codage : **en attente de l'accord de
 Fichiers : tests/test_providers_cli.py, thot.config.example.toml, thot/config.py, thot/providers/__init__.py
 
 Raisons : fichier protégé : thot.config.example.toml; fichier protégé : thot/config.py; fichier protégé : thot/providers/__init__.py; accès réseau; exécution de commandes système
+
+---
+
+## Tour 66 — Rodolphe (geste)
+*2026-11-05T11:23:32+01:00*
+
+Geste sur « Télécharger la voix Siwis vous-même » : C'est fait ? → Téléchargée
+
+---
+
+## Tour 67 — Rodolphe (humain)
+*2026-11-05T11:24:12+01:00*
+
+Ok, celui c'est téléchargé, fin si oui.
