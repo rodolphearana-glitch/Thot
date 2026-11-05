@@ -570,3 +570,198 @@ Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction
 *2026-11-05T11:19:20+01:00*
 
 Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 48 — Rodolphe (humain)
+*2026-11-05T11:20:03+01:00*
+
+Et t'es un peu long à répondre pourquoi tu relis tout le contexte ou ça se passe comment ?
+
+---
+
+## Tour 49 — Claude (ia)
+*2026-11-05T11:20:17+01:00*
+
+Oui, à chaque tour Thot me relance depuis zéro et me redonne toute la session, ce qui fait déjà beaucoup à relire. Ensuite, ce qui prend le plus de temps, c'est quand j'essaie des choses avant de répondre, comme les téléchargements tout à l'heure. Sur une simple question comme celle-ci, je devrais être plus rapide.
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe trouve les réponses lentes : chaque tour relance Claude Code depuis zéro avec toute la session ; éviter d'essayer des outils quand une réponse simple suffit.
+```
+
+---
+
+## Tour 50 — Labo (labo)
+*2026-11-05T11:20:17+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 51 — Rodolphe (humain)
+*2026-11-05T11:20:46+01:00*
+
+Ouais donc le mieux c'est que tu es en contexte de chat en fait.
+
+---
+
+## Tour 52 — Claude (ia)
+*2026-11-05T11:21:05+01:00*
+
+Oui, c'est exactement ça. Claude Code sait reprendre une conversation déjà ouverte : Thot pourrait garder une seule conversation par session et ne m'envoyer que le nouveau message, au lieu de tout me redonner à chaque tour. Je le fais coder, et ce changement attendra sans doute votre accord, parce qu'il touche au lancement des IA.
+
+```thot-codage
+Objectif : que Claude, dans une session du labo, garde le fil d'une conversation au lieu d'être relancé depuis zéro avec toute la session à chaque tour (Rodolphe trouve les réponses lentes).
+1. Trouver où Thot lance Claude Code pour un tour de session (chercher l'appel à `claude` dans thot/).
+2. Au premier tour de Claude dans une session, lancer comme aujourd'hui, mais récupérer l'identifiant de conversation de Claude Code (sortie `--output-format json`, champ session_id) et l'enregistrer dans session.json de la session Thot (par exemple sous "conversations": {"claude": "<id>"}).
+3. Aux tours suivants, relancer avec `--resume <id>` et n'envoyer que ce qui s'est passé depuis le dernier tour de Claude (tours humains, gestes, comptes rendus de codage, messages du labo), plus le rappel « C'est ton tour, Claude ». Ne pas renvoyer le sujet, les contextes ni l'échange déjà vus.
+4. Repli : si la reprise échoue (identifiant inconnu, erreur), relancer comme aujourd'hui avec toute la session et enregistrer le nouvel identifiant. Le repli doit être écrit dans le journal du tour.
+5. Garder les mêmes permissions et options qu'aujourd'hui ; ne rien élargir.
+6. Si possible, mesurer la durée de chaque tour (début, fin) et l'écrire dans tours.jsonl, pour qu'on compare avant et après.
+7. Tests : un test qui vérifie que le deuxième tour utilise --resume avec l'identifiant enregistré et n'envoie que les tours nouveaux ; un test du repli quand la reprise échoue.
+Si le fichier touché est dans PROTEGES de thot/selfupdate.py, ne pas contourner : le changement attendra l'accord de Rodolphe.
+Même chose pour GPT plus tard si Codex le permet, mais pas dans ce changement.
+```
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe veut que Claude garde le contexte comme dans un chat : codage demandé pour reprendre la conversation Claude Code (--resume) au lieu de tout relancer à chaque tour.
+```
+
+---
+
+## Tour 53 — Labo (labo)
+*2026-11-05T11:21:05+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 54 — Labo (labo)
+*2026-11-05T11:21:05+01:00*
+
+Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 55 — Rodolphe (humain)
+*2026-11-05T11:21:05+01:00*
+
+Je vais lire tout le contexte de taux que s'il y a besoin, et tu dois avoir des règles juste pour ça. Il y a eu un petit quoique avec le mélange du projet de taux.
+
+---
+
+## Tour 56 — Claude (ia)
+*2026-11-05T11:21:18+01:00*
+
+Si je comprends bien, je ne devrais relire tout le contexte de Thot que quand c'est utile, avec une règle claire qui dit quand. C'est d'accord pour moi, et ça va avec la reprise de conversation qui est en train d'être codée. Par contre, je n'ai pas compris le couac de mélange : vous voulez dire que la construction de Thot s'est mélangée avec la recherche du labo, ou autre chose ?
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe : le contexte complet de Thot ne doit être relu que s'il y a besoin, avec des règles pour ça ; il signale un « petit couac » de mélange avec le projet Thot (à préciser).
+```
+
+---
+
+## Tour 57 — Labo (labo)
+*2026-11-05T11:21:18+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 58 — Rodolphe (humain)
+*2026-11-05T11:21:18+01:00*
+
+Tu ne dois pas lire le contexte des sessions de taux en fait. C'est un fonctionnement à part. Ici, ce que je veux, c'est que je puisse discuter avec toi et GPT.
+
+---
+
+## Tour 59 — Claude (ia)
+*2026-11-05T11:21:34+01:00*
+
+Compris : ici, c'est une discussion simple entre vous, GPT et moi, à part du fonctionnement des sessions de Thot, sans relire leur contexte. Je fais coder ce mode de conversation légère. Et pour que GPT participe, il faut l'ajouter aux participants de cette session sur la page.
+
+```thot-codage
+Rodolphe veut que la conversation orale (mode oral de l'établi) soit une discussion simple avec Claude et GPT, à part du fonctionnement des sessions de recherche de Thot : « Tu ne dois pas lire le contexte des sessions de Thot en fait. C'est un fonctionnement à part. Ici, ce que je veux, c'est que je puisse discuter avec toi et GPT. »
+1. Trouver où Thot construit la consigne d'un tour de session (sujet, contextes, mémoire de construction, échange) et repérer comment le mode oral est signalé.
+2. En mode oral, ne plus injecter par défaut la mémoire de construction, les contextes du labo ni les journaux d'autres sessions. Envoyer seulement les règles de l'échange, les règles du mode oral et la conversation en cours.
+3. Garder un moyen explicite de les recharger si besoin : un réglage de la session, par exemple "contexte_labo": true dans session.json, et une case sur la page pour l'activer.
+4. Ne pas toucher au fonctionnement des sessions non orales.
+5. Tests : en mode oral, la consigne ne contient pas la mémoire de construction ni les contextes ; avec contexte_labo à true, elle les contient ; une session non orale reste inchangée.
+Si le fichier touché est dans PROTEGES de thot/selfupdate.py, ne pas contourner : le changement attendra l'accord de Rodolphe.
+```
+
+```thot-memoire
+2026-11-05 (Claude) Rodolphe : la conversation orale est un fonctionnement à part, une discussion avec Claude et GPT sans relire le contexte des sessions de Thot (codage demandé).
+```
+
+---
+
+## Tour 60 — Labo (labo)
+*2026-11-05T11:21:34+01:00*
+
+Claude a noté 1 ligne(s) dans la mémoire de construction (memoire/construction.md).
+
+---
+
+## Tour 61 — Labo (labo)
+*2026-11-05T11:21:34+01:00*
+
+Codage lancé pour Claude dans une copie à part du dépôt, sans relecteur. Le compte rendu arrivera dans le fil ; la session peut continuer en attendant.
+
+---
+
+## Tour 62 — Rodolphe (humain)
+*2026-11-05T11:22:14+01:00*
+
+D'accord, donc le ménage de pouvoir me répondre.
+
+---
+
+## Tour 63 — Claude (ia)
+*2026-11-05T11:22:26+01:00*
+
+Si je vous ai bien compris, oui, je peux vous répondre normalement en attendant, et on peut parler de ce que vous voulez. Une seule chose bloque : les cartes dans le fil ont été refusées à cause du test de la mémoire, pas à cause des cartes elles-mêmes. Dès que mon correctif de la mémoire sera passé, je relance ce changement.
+
+---
+
+## Tour 64 — Claude (codage)
+*2026-11-05T11:23:11+01:00*
+
+**Codage de Claude** (`20261105-111920-366157`)
+
+Compte rendu :
+
+J'ai ajouté les permissions demandées, mais le changement **attendra ton accord, Rodolphe** : les trois fichiers touchés sont dans `PROTEGES` (`thot/providers/**`, `thot/config.py`, `thot.config*.toml`). Je n'ai pas contourné ce garde-fou.
+
+**Ce qui est fait**
+- **Où Thot lance Claude Code** : dans `_claude_code` (`thot/providers/__init__.py`). En tour de session, il n'a droit qu'à `--allowedTools Read,Glob,Grep`.
+- **Les règles se lisent dans la config** : section `[claude]`, clé `permissions_session`, dans `thot.config.toml`. Elles ne servent qu'aux tours de session, pas au mode codage. Sans ce réglage, rien ne change : Claude Code reste en lecture seule.
+- **Seules les règles ciblées passent**, de la forme `Outil(motif)`. Un nom d'outil seul (`Bash`), `Bash(*)` ou une option comme `--dangerously-skip-permissions` sont écartés, même s'ils sont écrits dans la config.
+- **Valeurs d'exemple** dans `thot.config.example.toml` : écrire et modifier des fichiers dans `modeles/**`, créer un dossier sous `modeles/` (`mkdir -p` et `New-Item`), et `curl.exe` et `Invoke-WebRequest` vers `https://huggingface.co/rhasspy/piper-voices/` uniquement.
+- **Tests ajoutés** dans `tests/test_providers_cli.py`. Le premier vérifie que la commande contient exactement ces règles, sans `--dangerously-skip-permissions` ni `--permission-mode`, et qu'une permission générale glissée dans la config est écartée. Il vérifie aussi que sans réglage, c'est lecture seule. Le second vérifie l'exemple de configuration.
+
+**Tests**
+- 60 passent, 6 sont ignorés et 1 échoue : `test_etabli.py::test_memoire_archivee_quand_elle_grossit` (`FileExistsError`, sous Windows le fichier d'archive existe déjà).
+- Ce test échoue aussi sur le code d'origine, sans mes changements (vérifié dans une copie à part). Il n'a donc pas de lien avec ce travail, et je ne l'ai pas corrigé.
+
+**À savoir**
+- **Pour que ça marche chez toi**, il faudra recopier la section `[claude]` dans ton `thot.config.toml` : l'exemple n'est lu que si ce fichier n'existe pas.
+- **Pas testé avec le vrai Claude Code.** Je n'ai pas vérifié qu'il reconnaît bien chaque règle, en particulier `Write(...)`, la forme `PowerShell(...)` et les `*` au milieu d'une commande. Les règles de commande dépendent aussi de l'ordre des arguments : une commande `curl.exe` écrite autrement (options dans un autre ordre, autre dossier de sortie) sera refusée. C'est plus strict, pas plus large.
+- **[SUGGESTION] Un risque, pas traité ici** : `modeles/` n'est pas ignoré par Git, et la synchro y fait `git add -A` (`thot/synchro.py:150`). Une voix Piper téléchargée (fichier `.onnx` de plusieurs dizaines de Mo) partirait donc sur GitHub, qui est public. On pourrait ajouter `modeles/voix/` au `.gitignore`, qui est lui aussi protégé. C'est à toi de trancher.
+
+Tests relancés par Thot dans la copie : **en échec**
+
+```
+s.F................s................sss.......s.........
+```
+
+---
+
+## Tour 65 — Labo (labo)
+*2026-11-05T11:23:11+01:00*
+
+Changement `20261105-112311-784189` issu du codage : **en attente de l'accord de Rodolphe (colonne de droite)**.
+
+Fichiers : tests/test_providers_cli.py, thot.config.example.toml, thot/config.py, thot/providers/__init__.py
+
+Raisons : fichier protégé : thot.config.example.toml; fichier protégé : thot/config.py; fichier protégé : thot/providers/__init__.py; accès réseau; exécution de commandes système
