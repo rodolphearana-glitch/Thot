@@ -44,6 +44,9 @@ button:disabled{opacity:.45;cursor:default}
 .mem{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
 .mem button{min-height:32px;padding:2px 8px;font-size:12px;flex:none}
 .micro{width:56px;height:56px;border-radius:28px !important;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.niveau{flex:1;height:8px;border-radius:4px;background:#343A46;overflow:hidden;min-width:80px}
+.niveau>div{height:100%;width:0;background:#5BC48B;transition:width .08s}
+.niveau>div.parle{background:#F2B66B}
 .micro.ecoute{background:#A33A2A !important;border-color:#A33A2A !important}
 .bascule{display:flex;align-items:center;gap:6px;font-size:14px}
 .bascule input{width:auto}
@@ -98,6 +101,11 @@ a{color:var(--accent)}
     <div class="rangee">
       <label class="bascule"><input type="checkbox" id="oral"> mode oral</label>
       <label class="bascule"><input type="checkbox" id="lire"> lire à voix haute</label>
+      <label class="bascule"><input type="checkbox" id="auto"> écoute automatique</label>
+    </div>
+    <div class="rangee" id="niveau-zone" hidden>
+      <div class="niveau" aria-hidden="true"><div id="niveau"></div></div>
+      <span id="auto-etat" class="petit" style="text-transform:none;letter-spacing:0">j'écoute…</span>
     </div>
     <div id="voix-info" class="petit" style="text-transform:none;letter-spacing:0"></div>
   </div>
@@ -307,7 +315,7 @@ async function chargerVoix(){
   const ecoute = infoVoix?.ecoute ? "écoute : Whisper sur ton PC" : "écoute indisponible (pip install -r requirements-voix.txt)";
   const parole = infoVoix?.parole === "piper" ? "voix : Piper sur ton PC" : "voix : celles de Windows (navigateur)";
   $("voix-info").textContent = `${ecoute} · ${parole}`;
-  $("micro").disabled = !infoVoix?.ecoute;
+  $("micro").disabled = !infoVoix?.ecoute || !!auto;
 }
 $("micro").onclick = async () => {
   if(enregistreur){ enregistreur.stop(); return; }
@@ -320,20 +328,94 @@ $("micro").onclick = async () => {
     enregistreur.onstop = async () => {
       flux.getTracks().forEach(t => t.stop());
       $("micro").classList.remove("ecoute"); enregistreur = null;
-      const blob = new Blob(morceaux, {type: morceaux[0]?.type || "audio/webm"});
-      $("voix-info").textContent = "je transcris…";
-      try{
-        const r = await fetch("/api/voix/ecouter", {method:"POST", headers:{"content-type": blob.type}, body: blob});
-        if(!r.ok) throw new Error((await r.json()).detail || r.statusText);
-        const {texte} = await r.json();
-        chargerVoix();
-        if(texte) envoyerTexte(texte);
-      }catch(e){ avertir("Écoute : " + e.message); chargerVoix(); }
+      transcrire(new Blob(morceaux, {type: morceaux[0]?.type || "audio/webm"}));
     };
     enregistreur.start();
     $("micro").classList.add("ecoute");
   }catch(e){ avertir("Micro : " + e.message); }
 };
+async function transcrire(blob){
+  $("voix-info").textContent = "je transcris…";
+  try{
+    const r = await fetch("/api/voix/ecouter", {method:"POST", headers:{"content-type": blob.type}, body: blob});
+    if(!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    const {texte} = await r.json();
+    chargerVoix();
+    if(texte) envoyerTexte(texte);           // un bruit transcrit en rien ne coupe personne
+  }catch(e){ avertir("Écoute : " + e.message); chargerVoix(); }
+}
+
+// -- écoute automatique : le micro reste ouvert, l'établi repère le début et la fin de ta phrase ------
+// Détection par le niveau sonore, avec un plancher de bruit qui s'adapte à la pièce. On garde un peu de
+// son avant le début détecté, pour ne pas couper la première syllabe. La phrase part en WAV vers Whisper.
+const AUTO = {debut_ms: 150, silence_ms: 900, min_ms: 450, max_ms: 30000, avant_ms: 400};
+let auto = null;
+async function demarrerAuto(){
+  const flux = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}});
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = ctx.createMediaStreamSource(flux);
+  const proc = ctx.createScriptProcessor(2048, 1, 1);
+  const muet = ctx.createGain(); muet.gain.value = 0;
+  source.connect(proc); proc.connect(muet); muet.connect(ctx.destination);
+  const taux = ctx.sampleRate, msParBloc = 2048 / taux * 1000;
+  const etat = {flux, ctx, proc, avant: [], phrase: null, au_dessus: 0, silence: 0, plancher: 0.004};
+  proc.onaudioprocess = e => {
+    const b = new Float32Array(e.inputBuffer.getChannelData(0));
+    let q = 0; for(const x of b) q += x * x;
+    const rms = Math.sqrt(q / b.length);
+    // pendant que nos voix parlent, il faut parler plus fort pour couper (le haut-parleur revient dans le micro)
+    const voixActive = !!audioEnCours || (window.speechSynthesis && speechSynthesis.speaking);
+    const seuil = Math.max(0.012, etat.plancher * 3.5) * (voixActive ? 3 : 1);
+    const barre = $("niveau"); barre.style.width = Math.min(100, rms / seuil * 50) + "%";
+    if(!etat.phrase){
+      etat.avant.push(b); while(etat.avant.length * msParBloc > AUTO.avant_ms) etat.avant.shift();
+      if(rms > seuil){ etat.au_dessus += msParBloc; } else { etat.au_dessus = 0; etat.plancher = etat.plancher * 0.98 + rms * 0.02; }
+      if(etat.au_dessus >= AUTO.debut_ms){
+        etat.phrase = etat.avant.slice(); etat.avant = []; etat.silence = 0;
+        barre.classList.add("parle"); $("auto-etat").textContent = "tu parles…";
+        arreterVoix();                                   // on se coupe la parole
+      }
+    } else {
+      etat.phrase.push(b);
+      etat.silence = rms > seuil * 0.6 ? 0 : etat.silence + msParBloc;
+      const duree = etat.phrase.length * msParBloc;
+      if(etat.silence >= AUTO.silence_ms || duree >= AUTO.max_ms){
+        const blocs = etat.phrase; etat.phrase = null; etat.au_dessus = 0;
+        barre.classList.remove("parle"); $("auto-etat").textContent = "j'écoute…";
+        if(duree - etat.silence >= AUTO.min_ms) transcrire(wav(blocs, taux));
+      }
+    }
+  };
+  if(ctx.state === "suspended") await ctx.resume();
+  return etat;
+}
+function arreterAuto(){
+  if(!auto) return;
+  auto.proc.onaudioprocess = null;
+  auto.flux.getTracks().forEach(t => t.stop());
+  auto.ctx.close();
+  auto = null;
+}
+function wav(blocs, taux){
+  // ramené à 16 kHz mono 16 bits : ce que Whisper attend, et quatre fois plus léger à envoyer
+  const n = blocs.reduce((a, b) => a + b.length, 0), cible = 16000, pas = taux / cible;
+  const tout = new Float32Array(n); let o = 0; for(const b of blocs){ tout.set(b, o); o += b.length; }
+  const m = Math.floor(n / pas), donnees = new Int16Array(m);
+  for(let i = 0; i < m; i++){ const v = Math.max(-1, Math.min(1, tout[Math.floor(i * pas)])); donnees[i] = v < 0 ? v * 0x8000 : v * 0x7FFF; }
+  const tete = new DataView(new ArrayBuffer(44)), ecrire = (o, t) => [...t].forEach((c, i) => tete.setUint8(o + i, c.charCodeAt(0)));
+  ecrire(0, "RIFF"); tete.setUint32(4, 36 + m * 2, true); ecrire(8, "WAVEfmt "); tete.setUint32(16, 16, true);
+  tete.setUint16(20, 1, true); tete.setUint16(22, 1, true); tete.setUint32(24, cible, true); tete.setUint32(28, cible * 2, true);
+  tete.setUint16(32, 2, true); tete.setUint16(34, 16, true); ecrire(36, "data"); tete.setUint32(40, m * 2, true);
+  return new Blob([tete.buffer, donnees.buffer], {type: "audio/wav"});
+}
+$("auto").onchange = async e => {
+  try{ localStorage.setItem("thot-auto", e.target.checked ? "1" : "0") }catch(err){}
+  if(e.target.checked){
+    try{ auto = await demarrerAuto(); $("niveau-zone").hidden = false; $("micro").disabled = true; }
+    catch(err){ e.target.checked = false; avertir("Micro : " + err.message); }
+  } else { arreterAuto(); $("niveau-zone").hidden = true; $("micro").disabled = !infoVoix?.ecoute; }
+};
+
 function arreterVoix(){
   if(audioEnCours){ audioEnCours.pause(); audioEnCours = null; }
   if(window.speechSynthesis) speechSynthesis.cancel();
@@ -403,6 +485,8 @@ $("t-reprendre").onclick = async () => { await api("/api/travaux/reprendre", {})
 
 (async () => {
   await chargerSessions(); await chargerVoix();
+  $("auto").disabled = !infoVoix?.ecoute;
+  try{ if(localStorage.getItem("thot-auto") === "1" && infoVoix?.ecoute){ $("auto").checked = true; $("auto").onchange({target: $("auto")}); } }catch(e){}
   rafraichir(); chargerBiblio(); chargerPC(); chargerMemoire();
   setInterval(() => { if(!avance) rafraichir(); }, 4000);
   setInterval(() => { chargerPC(); chargerMemoire(); }, 15000);
